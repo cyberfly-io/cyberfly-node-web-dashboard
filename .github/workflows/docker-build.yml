@@ -34,6 +34,14 @@ jobs:
       - name: Build React Vite app
         run: npm run build:prod
 
+      - name: Verify dist folder
+        run: ls -la dist/
+
+      - name: Prepare Docker context (temporarily remove dist from .dockerignore)
+        run: |
+          cp .dockerignore .dockerignore.backup
+          grep -v "^dist$" .dockerignore.backup > .dockerignore || true
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -68,6 +76,13 @@ jobs:
           platforms: linux/amd64,linux/arm64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Restore .dockerignore
+        if: always()
+        run: |
+          if [ -f .dockerignore.backup ]; then
+            mv .dockerignore.backup .dockerignore
+          fi
 
       - name: Image digest
         run: echo "Image pushed with digest ${{ steps.build-push.outputs.digest }}"
