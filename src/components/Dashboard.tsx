@@ -31,7 +31,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-6 space-y-8">
-      <div>
+      <div className="pt-16 lg:pt-0">
         <h1 className="text-4xl font-bold gradient-text-blue mb-2">CyberFly Node Dashboard</h1>
         <p className="text-gray-600 dark:text-gray-400 text-lg">Monitor your decentralized network node</p>
       </div>

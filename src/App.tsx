@@ -51,7 +51,7 @@ function AllNodesRoute() {
 }
 
 function AppContent() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { account, initializeKadenaWallet, disconnectWallet, isInstalled } = useKadenaWallet();
@@ -127,14 +127,20 @@ function AppContent() {
         </aside>
 
         {/* Mobile menu button */}
-        <button
-          onClick={() => setSidebarOpen(true)}
-          className={`lg:hidden fixed top-4 left-4 z-40 p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-110 ${
-            sidebarOpen ? 'hidden' : 'block'
-          }`}
-        >
-          <Menu className="w-6 h-6 dark:text-gray-300" />
-        </button>
+        <div className={`lg:hidden fixed top-4 left-4 z-40 flex items-center gap-3 ${
+          sidebarOpen ? 'hidden' : 'flex'
+        }`}>
+          <button
+            onClick={() => setSidebarOpen(true)}
+            className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-110"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <div className="flex items-center gap-2 px-4 py-2 glass dark:glass-dark rounded-xl shadow-xl backdrop-blur-md border border-white/30 dark:border-gray-700/50">
+            <Cloud className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">CyberFly</h1>
+          </div>
+        </div>
 
         {/* Header buttons container */}
         <div className="fixed top-6 right-6 z-40 flex items-center gap-3">
