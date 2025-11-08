@@ -79,7 +79,7 @@ function AppContent() {
         <div className="flex items-center justify-between p-6 border-b border-white/20 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
-              <Cloud className="w-6 h-6 text-white" />
+              <img src="/newlogo.png" alt="CyberFly Logo" className="w-6 h-6 object-contain" />
             </div>
             <h1 className="text-2xl font-bold text-white">CyberFly</h1>
           </div>
@@ -137,7 +137,7 @@ function AppContent() {
             <Menu className="w-6 h-6" />
           </button>
           <div className="flex items-center gap-2 px-4 py-2 glass dark:glass-dark rounded-xl shadow-xl backdrop-blur-md border border-white/30 dark:border-gray-700/50">
-            <Cloud className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+            <img src="/newlogo.png" alt="CyberFly Logo" className="w-5 h-5 object-contain" />
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">CyberFly</h1>
           </div>
         </div>
