@@ -3,7 +3,7 @@ import { createClient, Pact, createSignWithEckoWallet } from '@kadena/client';
 const POLL_INTERVAL_S = 5;
 const network = 'mainnet01';
 const chainId = '1';
-const networkUrl = `https://api.chainweb.com/chainweb/0.0/${network}/chain/${chainId}/pact`;
+const networkUrl = `https://api.chainweb-community.org/chainweb/0.0/${network}/chain/${chainId}/pact`;
 const client = createClient(networkUrl);
 
 // Node status and stake types

@@ -2,7 +2,7 @@ import { createClient, Pact } from '@kadena/client';
 
 const NETWORK = 'mainnet01';
 const CHAIN_ID = '1';
-const NETWORK_URL = `https://api.chainweb.com/chainweb/0.0/${NETWORK}/chain/${CHAIN_ID}/pact`;
+const NETWORK_URL = `https://api.chainweb-community.org/chainweb/0.0/${NETWORK}/chain/${CHAIN_ID}/pact`;
 
 const client = createClient(NETWORK_URL);
 
