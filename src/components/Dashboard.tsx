@@ -119,7 +119,12 @@ export default function Dashboard() {
               Configuration
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <InfoBox 
+                label="Region" 
+                value={nodeInfo?.region || 'Unknown'} 
+                muted={!nodeInfo?.region}
+              />
               <InfoBox 
                 label="Relay URL" 
                 value={nodeInfo?.relayUrl || 'Not configured'} 

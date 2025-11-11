@@ -58,6 +58,7 @@ export interface NodeInfo {
   discoveredPeers: number;
   uptimeSeconds: number;
   relayUrl?: string;
+  region?: string;
 }
 
 export async function getNodeInfo(): Promise<NodeInfo> {
@@ -71,6 +72,7 @@ export async function getNodeInfo(): Promise<NodeInfo> {
         discoveredPeers
         uptimeSeconds
         relayUrl
+        region
       }
     }
   `;
