@@ -10,6 +10,7 @@ export default function DataSubmit() {
   const [value, setValue] = useState('');
   const [keyPair, setKeyPair] = useState<{ publicKey: string; secretKey: string } | null>(null);
   const [result, setResult] = useState<{ success?: string; error?: string }>({});
+  const [latency, setLatency] = useState<number | null>(null);
 
   // Load keypair on mount
   useEffect(() => {
@@ -18,14 +19,21 @@ export default function DataSubmit() {
   }, []);
 
   const submitMutation = useMutation({
-    mutationFn: submitData,
-    onSuccess: (message) => {
+    mutationFn: async (data: DataSubmission) => {
+      const startTime = performance.now();
+      const result = await submitData(data);
+      const endTime = performance.now();
+      setLatency(endTime - startTime);
+      return result;
+    },
+    onSuccess: (message: string) => {
       setResult({ success: `Data submitted successfully! ${message}` });
       // Clear form
       setKey('');
       setValue('');
     },
     onError: (error: any) => {
+      setLatency(null);
       setResult({ error: error.message || 'Failed to submit data' });
     },
   });
@@ -210,6 +218,11 @@ export default function DataSubmit() {
           {result.success && (
             <div className="p-4 bg-green-50 border border-green-200 rounded-md">
               <p className="text-sm text-green-800">{result.success}</p>
+              {latency !== null && (
+                <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">
+                  ⚡ Latency: {latency.toFixed(2)}ms
+                </p>
+              )}
             </div>
           )}
           {result.error && (

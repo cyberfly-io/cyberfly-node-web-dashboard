@@ -11,6 +11,7 @@ import { loadKeyPair } from '../utils/crypto';
 export default function DataQuery() {
   const [storeType, setStoreType] = useState('');
   const [dbName, setDbName] = useState('');
+  const [latency, setLatency] = useState<number | null>(null);
 
   // Auto-load dbName from keypair
   const keyPair = loadKeyPair();
@@ -18,15 +19,21 @@ export default function DataQuery() {
 
   const dbQuery = useQuery({
     queryKey: ['dbData', dbName, storeType],
-    queryFn: () => {
+    queryFn: async () => {
+      const startTime = performance.now();
       const targetDbName = dbName || defaultDbName;
       if (!targetDbName) {
         throw new Error('No database name specified');
       }
+      let result;
       if (storeType) {
-        return getDataByDbNameAndType(targetDbName, storeType);
+        result = await getDataByDbNameAndType(targetDbName, storeType);
+      } else {
+        result = await getDataByDbName(targetDbName);
       }
-      return getDataByDbName(targetDbName);
+      const endTime = performance.now();
+      setLatency(endTime - startTime);
+      return result;
     },
     enabled: (dbName.length > 0 || defaultDbName.length > 0),
   });
@@ -96,12 +103,19 @@ export default function DataQuery() {
       {/* Results */}
       <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold">
-            Results ({data.length})
-            {dbQuery.isFetching && (
-              <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading...</span>
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">
+              Results ({data.length})
+              {dbQuery.isFetching && (
+                <span className="ml-2 text-sm text-gray-500 dark:text-gray-400">Loading...</span>
+              )}
+            </h2>
+            {latency !== null && !dbQuery.isFetching && (
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                ⚡ Latency: {latency.toFixed(2)}ms
+              </span>
             )}
-          </h2>
+          </div>
         </div>
 
         <div className="divide-y divide-gray-200 max-h-[600px] overflow-y-auto">
