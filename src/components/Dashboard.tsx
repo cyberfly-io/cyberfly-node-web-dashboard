@@ -5,25 +5,40 @@ import { getAPY, getStakeStats } from '../services/kadena';
 import { useState } from 'react';
 
 export default function Dashboard() {
-  const { data: nodeInfo } = useQuery({
+  const {
+    data: nodeInfo,
+    isLoading: isNodeLoading,
+    isError: isNodeError,
+  } = useQuery({
     queryKey: ['nodeInfo'],
     queryFn: getNodeInfo,
     refetchInterval: 5000,
   });
 
-  const { data: peers = [] } = useQuery({
+  const {
+    data: peers = [],
+    isLoading: arePeersLoading,
+  } = useQuery({
     queryKey: ['peers'],
     queryFn: getDiscoveredPeers,
     refetchInterval: 5000,
   });
 
-  const { data: apy } = useQuery({
+  const {
+    data: apy,
+    isLoading: isApyLoading,
+    isError: isApyError,
+  } = useQuery({
     queryKey: ['apy'],
     queryFn: getAPY,
     refetchInterval: 60000, // Refetch every minute
   });
 
-  const { data: stakeStats } = useQuery({
+  const {
+    data: stakeStats,
+    isLoading: isStakeLoading,
+    isError: isStakeError,
+  } = useQuery({
     queryKey: ['stakeStats'],
     queryFn: getStakeStats,
     refetchInterval: 30000, // Refetch every 30 seconds
@@ -49,21 +64,30 @@ export default function Dashboard() {
                 <p className="text-blue-100 text-base">Decentralized Network Node</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <div className={`px-4 py-2 rounded-xl text-sm font-bold shadow-lg backdrop-blur-sm ${
-                nodeInfo?.health === 'healthy' 
-                  ? 'bg-green-500/90 text-white' 
-                  : nodeInfo?.health === 'discovering'
-                  ? 'bg-yellow-500/90 text-white'
-                  : 'bg-red-500/90 text-white'
-              }`}>
-                {nodeInfo?.health?.toUpperCase() || 'UNKNOWN'}
+            <div className="flex items-center gap-3">
+              <div
+                className={`px-4 py-2 rounded-xl text-sm font-bold shadow-lg backdrop-blur-sm flex items-center gap-2 ${
+                  nodeInfo?.health === 'healthy'
+                    ? 'bg-green-500/90 text-white'
+                    : nodeInfo?.health === 'discovering'
+                    ? 'bg-yellow-500/90 text-white'
+                    : 'bg-red-500/90 text-white animate-pulse'
+                }`}
+                title="Node health status"
+              >
+                <span className="inline-flex w-2 h-2 rounded-full bg-white/90" />
+                {nodeInfo?.health?.toUpperCase() || (isNodeLoading ? 'CONNECTING…' : 'UNKNOWN')}
               </div>
+              {nodeInfo?.region && (
+                <span className="hidden sm:inline-flex px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white border border-white/30">
+                  Region: {nodeInfo.region}
+                </span>
+              )}
             </div>
           </div>
         </div>
         
-        <div className="p-6 space-y-6 backdrop-blur-xl">
+  <div className="p-6 space-y-6 backdrop-blur-xl">
           {/* Node IDs Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide">
@@ -132,7 +156,7 @@ export default function Dashboard() {
               />
               <InfoBox 
                 label="Protocol Version" 
-                value="Iroh v0.94.0" 
+                value="Iroh v0.95.0" 
               />
             </div>
           </div>
@@ -159,21 +183,21 @@ export default function Dashboard() {
             <StatBox
               icon={<TrendingUp className="w-5 h-5 text-green-600" />}
               label="Current APY"
-              value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : 'Loading...'}
+              value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : isApyLoading ? 'Fetching…' : isApyError ? 'Unavailable' : 'N/A'}
               subtitle="Annual percentage yield"
               color="green"
             />
             <StatBox
               icon={<Coins className="w-5 h-5 text-emerald-600" />}
               label="Active Stakes"
-              value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : 'Loading...'}
-              subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : 'Loading...'}
+              value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : isStakeLoading ? 'Fetching…' : isStakeError ? 'Unavailable' : 'N/A'}
+              subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : isStakeLoading ? 'Loading active stakes…' : ''}
               color="green"
             />
             <StatBox
               icon={<Coins className="w-5 h-5 text-blue-600" />}
               label="Total Staked"
-              value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : 'Loading...'}
+              value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : isStakeLoading ? 'Fetching…' : isStakeError ? 'Unavailable' : 'N/A'}
               subtitle="Total amount staked"
               color="blue"
             />
@@ -181,11 +205,11 @@ export default function Dashboard() {
           
           <div className="glass dark:glass-dark rounded-lg p-4 backdrop-blur-md border border-white/10 dark:border-gray-600/30">
             <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-              {apy !== null ? (
-                `📊 Real-time data from Kadena blockchain`
-              ) : (
-                `💡 Connecting to Kadena network...`
-              )}
+              {isApyError || isStakeError
+                ? '⚠️ Unable to load staking data right now. Please check your connection.'
+                : isApyLoading || isStakeLoading
+                ? '💡 Fetching live staking data from Kadena…'
+                : '📊 Real-time staking data from Kadena blockchain (refreshes every 60s).'}
             </p>
           </div>
         </div>
@@ -193,24 +217,41 @@ export default function Dashboard() {
 
       {/* Connected Peers */}
       <div className="glass dark:glass-dark rounded-2xl shadow-2xl p-6 backdrop-blur-xl border border-white/20 dark:border-gray-700/50">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <Network className="w-5 h-5 text-blue-500" />
-          Connected Peers ({peers.length})
-        </h2>
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Network className="w-5 h-5 text-blue-500" />
+            Connected Peers
+          </h2>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            {arePeersLoading ? 'Loading peers…' : `${peers.length} discovered`}
+          </span>
+        </div>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+          Live view of peers discovered by your node (updates every 5s).
+        </p>
         <div className="space-y-2 max-h-96 overflow-y-auto">
-          {peers.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No peers connected</p>
+          {arePeersLoading ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">Discovering peers…</p>
+          ) : peers.length === 0 ? (
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+              No peers discovered yet. Ensure your node is running and reachable.
+            </p>
           ) : (
             peers.map((peer) => (
               <div
                 key={peer.peerId}
                 className="flex items-center justify-between p-3 glass dark:glass-dark rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/50 transition backdrop-blur-md border border-white/10 dark:border-gray-600/30"
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50"></div>
-                  <code className="text-sm font-mono text-gray-700 dark:text-gray-300">{peer.peerId}</code>
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
+                  <code
+                    className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate"
+                    title={peer.peerId}
+                  >
+                    {peer.peerId}
+                  </code>
                 </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400">
+                <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
                   {formatRelativeTime(peer.lastSeen)}
                 </span>
               </div>
@@ -270,13 +311,17 @@ function CopyableField({ label, value, fullWidth }: CopyableFieldProps) {
     <div className={fullWidth ? 'w-full' : ''}>
       <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">{label}</label>
       <div className="flex items-center gap-2">
-        <code className="flex-1 bg-white dark:bg-gray-700 px-3 py-2 rounded border border-gray-300 dark:border-gray-600 text-sm font-mono text-gray-800 dark:text-gray-200 overflow-x-auto">
+        <code
+          className="flex-1 bg-white dark:bg-gray-700 px-3 py-2 rounded border border-gray-300 dark:border-gray-600 text-sm font-mono text-gray-800 dark:text-gray-200 overflow-x-auto truncate"
+          title={value}
+        >
           {value}
         </code>
         <button
           onClick={handleCopy}
           className="p-2 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors flex-shrink-0"
           title="Copy to clipboard"
+          aria-label={`Copy ${label}`}
         >
           {copied ? (
             <Check className="w-4 h-4 text-green-600" />
