@@ -1,11 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { 
+  LineChart, 
+  Line, 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend
+} from 'recharts';
+import { 
   Activity, 
   Database, 
   Zap, 
   Clock, 
-  TrendingUp, 
   Server,
   HardDrive,
   Cpu,
@@ -327,25 +338,123 @@ export default function Metrics() {
         </MetricPanel>
       </div>
 
-      {/* Simple Chart Visualization */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Historical Trends</h2>
+      {/* Charts Visualization */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Storage Activity Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <BarChart3 className="w-5 h-5 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Storage Activity</h2>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={history}>
+                <defs>
+                  <linearGradient id="colorReads" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorWrites" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                <XAxis 
+                  dataKey="timestamp" 
+                  tickFormatter={(ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(17, 24, 39, 0.8)', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  labelFormatter={(ts) => new Date(ts).toLocaleTimeString()}
+                />
+                <Legend />
+                <Area 
+                  type="monotone" 
+                  dataKey="reads" 
+                  name="Reads"
+                  stroke="#3b82f6" 
+                  fillOpacity={1} 
+                  fill="url(#colorReads)" 
+                  strokeWidth={2}
+                />
+                <Area 
+                  type="monotone" 
+                  dataKey="writes" 
+                  name="Writes"
+                  stroke="#10b981" 
+                  fillOpacity={1} 
+                  fill="url(#colorWrites)" 
+                  strokeWidth={2}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="space-y-6">
-          <SimpleChart
-            data={history}
-            dataKey="reads"
-            label="Storage Reads"
-            color="#3b82f6"
-          />
-          <SimpleChart
-            data={history}
-            dataKey="cacheHitRate"
-            label="Cache Hit Rate (%)"
-            color="#10b981"
-          />
+
+        {/* Cache Performance Chart */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+          <div className="flex items-center gap-2 mb-6">
+            <Activity className="w-5 h-5 text-purple-600" />
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Cache Performance</h2>
+          </div>
+          <div className="h-[300px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={history}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#374151" opacity={0.1} />
+                <XAxis 
+                  dataKey="timestamp" 
+                  tickFormatter={(ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis 
+                  domain={[0, 100]}
+                  stroke="#6b7280"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  unit="%"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(17, 24, 39, 0.8)', 
+                    border: 'none', 
+                    borderRadius: '8px',
+                    color: '#fff'
+                  }}
+                  labelFormatter={(ts) => new Date(ts).toLocaleTimeString()}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="cacheHitRate" 
+                  name="Hit Rate"
+                  stroke="#8b5cf6" 
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
       </div>
     </div>
@@ -454,47 +563,4 @@ function LatencyBar({ label, value, color }: LatencyBarProps) {
   );
 }
 
-interface SimpleChartProps {
-  data: HistoricalData[];
-  dataKey: keyof HistoricalData;
-  label: string;
-  color: string;
-}
 
-function SimpleChart({ data, dataKey, label, color }: SimpleChartProps) {
-  if (data.length === 0) return null;
-
-  const values = data.map(d => d[dataKey] as number);
-  const max = Math.max(...values, 1);
-  const min = Math.min(...values, 0);
-  const range = max - min || 1;
-
-  return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{label}</span>
-        <span className="text-sm text-gray-500 dark:text-gray-500">
-          {data.length > 0 ? (data[data.length - 1][dataKey] as number).toFixed(2) : '0'}
-        </span>
-      </div>
-      <div className="flex items-end gap-1 h-20">
-        {data.map((point, i) => {
-          const value = point[dataKey] as number;
-          const height = ((value - min) / range) * 100;
-          return (
-            <div
-              key={i}
-              className="flex-1 bg-gradient-to-t rounded-t transition-all duration-300"
-              style={{
-                backgroundColor: color,
-                height: `${height}%`,
-                minHeight: '2px',
-                opacity: 0.7 + (i / data.length) * 0.3,
-              }}
-            ></div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}

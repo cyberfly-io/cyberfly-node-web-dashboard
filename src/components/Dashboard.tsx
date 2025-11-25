@@ -1,5 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { Activity, Network, Copy, Check, Server, Clock, TrendingUp, Coins, RefreshCw, Search, Zap } from 'lucide-react';
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Tooltip as RechartsTooltip 
+} from 'recharts';
 import { getNodeInfo, getDiscoveredPeers } from '../api/client';
 import { getAPY, getStakeStats } from '../services/kadena';
 import { useState, useMemo } from 'react';
@@ -202,39 +209,75 @@ export default function Dashboard() {
           </div>
           
           <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 backdrop-blur-xl">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-              {isApyLoading ? (
-                <SkeletonStatBox />
-              ) : (
-                <StatBox
-                  icon={<TrendingUp className="w-5 h-5 text-green-600" />}
-                  label="Current APY"
-                  value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : isApyError ? 'Unavailable' : 'N/A'}
-                  subtitle="Annual percentage yield"
-                  color="green"
-                />
-              )}
-              {isStakeLoading ? (
-                <SkeletonStatBox />
-              ) : (
-                <StatBox
-                  icon={<Coins className="w-5 h-5 text-emerald-600" />}
-                  label="Active Stakes"
-                  value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : isStakeError ? 'Unavailable' : 'N/A'}
-                  subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : ''}
-                  color="green"
-                />
-              )}
-              {isStakeLoading ? (
-                <SkeletonStatBox />
-              ) : (
-                <StatBox
-                  icon={<Zap className="w-5 h-5 text-blue-600" />}
-                  label="Total Staked"
-                  value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : isStakeError ? 'Unavailable' : 'N/A'}
-                  subtitle="Total amount staked"
-                  color="blue"
-                />
+            <div className="flex flex-col lg:flex-row gap-6">
+              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                {isApyLoading ? (
+                  <SkeletonStatBox />
+                ) : (
+                  <StatBox
+                    icon={<TrendingUp className="w-5 h-5 text-green-600" />}
+                    label="Current APY"
+                    value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : isApyError ? 'Unavailable' : 'N/A'}
+                    subtitle="Annual percentage yield"
+                    color="green"
+                  />
+                )}
+                {isStakeLoading ? (
+                  <SkeletonStatBox />
+                ) : (
+                  <StatBox
+                    icon={<Coins className="w-5 h-5 text-emerald-600" />}
+                    label="Active Stakes"
+                    value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : isStakeError ? 'Unavailable' : 'N/A'}
+                    subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : ''}
+                    color="green"
+                  />
+                )}
+                {isStakeLoading ? (
+                  <SkeletonStatBox />
+                ) : (
+                  <StatBox
+                    icon={<Zap className="w-5 h-5 text-blue-600" />}
+                    label="Total Staked"
+                    value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : isStakeError ? 'Unavailable' : 'N/A'}
+                    subtitle="Total amount staked"
+                    color="blue"
+                  />
+                )}
+              </div>
+
+              {/* Staking Chart */}
+              {!isStakeLoading && !isStakeError && stakeStats && (
+                <div className="w-full lg:w-48 h-48 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Active', value: stakeStats.activeStakes },
+                          { name: 'Inactive', value: stakeStats.totalStakes - stakeStats.activeStakes }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={40}
+                        outerRadius={60}
+                        paddingAngle={5}
+                        dataKey="value"
+                      >
+                        <Cell fill="#10b981" />
+                        <Cell fill="#3b82f6" />
+                      </Pie>
+                      <RechartsTooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(17, 24, 39, 0.8)', 
+                          border: 'none', 
+                          borderRadius: '8px',
+                          color: '#fff',
+                          fontSize: '12px'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
               )}
             </div>
             

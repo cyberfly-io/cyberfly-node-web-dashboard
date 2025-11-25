@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { dialPeer } from '../api/client';
+import { Network, X, Link, Info } from 'lucide-react';
 
 export default function PeerConnection() {
   const [peerId, setPeerId] = useState('');
@@ -40,66 +41,94 @@ export default function PeerConnection() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Connect to Peer</h2>
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <h3 className="font-semibold text-blue-900 mb-2">About Peer Connections</h3>
-          <p className="text-sm text-blue-800 mb-2">
-            Enter a peer's EndpointId (public key) to establish a direct connection. This uses Iroh's 
-            hole-punching to create peer-to-peer connections.
-          </p>
-          <p className="text-sm text-blue-700">
-            <strong>Format:</strong> A 64-character hexadecimal string (e.g., the EndpointId shown in your Dashboard)
-          </p>
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="glass dark:glass-dark rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border border-white/20 dark:border-gray-700/50">
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-6">
+          <div className="flex items-center gap-4">
+            <div className="bg-white/20 p-3 rounded-xl shadow-lg backdrop-blur-sm">
+              <Network className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white">Connect to Peer</h2>
+              <p className="text-blue-100">Establish direct P2P connections via Iroh</p>
+            </div>
+          </div>
         </div>
 
-        <form onSubmit={handleConnect} className="space-y-4">
-          <div>
-            <label htmlFor="peerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Peer ID (EndpointId)
-            </label>
-            <input
-              id="peerId"
-              type="text"
-              value={peerId}
-              onChange={(e) => setPeerId(e.target.value)}
-              placeholder="Enter peer's EndpointId (64-char hex string)"
-              className="w-full px-3 py-2 rounded-md border border-gray-300 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
-              disabled={loading}
-            />
+        <div className="p-8 space-y-8">
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-5 flex gap-4">
+            <Info className="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
+            <div className="space-y-2">
+              <h3 className="font-semibold text-blue-900 dark:text-blue-100">About Peer Connections</h3>
+              <p className="text-sm text-blue-800 dark:text-blue-200 leading-relaxed">
+                Enter a peer's EndpointId (public key) to establish a direct connection. This uses Iroh's 
+                hole-punching to create peer-to-peer connections.
+              </p>
+              <p className="text-sm text-blue-700 dark:text-blue-300 font-mono bg-blue-100 dark:bg-blue-900/40 px-2 py-1 rounded inline-block">
+                Format: 64-character hexadecimal string
+              </p>
+            </div>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              type="submit"
-              disabled={loading || !peerId.trim()}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
-            >
-              {loading ? (
-                <span className="flex items-center justify-center">
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Connecting...
-                </span>
-              ) : (
-                'Connect to Peer'
-              )}
-            </button>
-            
-            <button
-              type="button"
-              onClick={handleClear}
-              disabled={loading}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Clear
-            </button>
-          </div>
-        </form>
+          <form onSubmit={handleConnect} className="space-y-6">
+            <div>
+              <label htmlFor="peerId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Peer ID (EndpointId)
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Link className="h-5 w-5 text-gray-400" />
+                </div>
+                <input
+                  id="peerId"
+                  type="text"
+                  value={peerId}
+                  onChange={(e) => setPeerId(e.target.value)}
+                  placeholder="Enter peer's EndpointId..."
+                  className="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 font-mono text-sm shadow-sm transition-all"
+                  disabled={loading}
+                />
+                {peerId && (
+                  <button
+                    type="button"
+                    onClick={() => setPeerId('')}
+                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex gap-4 pt-2">
+              <button
+                type="submit"
+                disabled={loading || !peerId.trim()}
+                className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium py-3 px-6 rounded-xl shadow-lg shadow-blue-500/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform active:scale-[0.98]"
+              >
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Connecting...
+                  </span>
+                ) : (
+                  'Connect to Peer'
+                )}
+              </button>
+              
+              <button
+                type="button"
+                onClick={handleClear}
+                disabled={loading}
+                className="px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-xl text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 font-medium focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </form>
 
         {/* Success Message */}
         {result && result.success && (
@@ -168,6 +197,7 @@ export default function PeerConnection() {
             </li>
           </ul>
         </div>
+      </div>
       </div>
     </div>
   );
