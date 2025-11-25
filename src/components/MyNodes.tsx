@@ -89,7 +89,7 @@ export default function MyNodes({ onNodeClick }: { onNodeClick?: (peerId: string
         </div>
 
         <div className={`mb-4 space-y-3 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
-          <div className="flex items-start gap-3 p-3 rounded-lg bg-opacity-50 ${isDark ? 'bg-gray-700' : 'bg-gray-100'}">
+          <div className={`flex items-start gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-100'}`}>
             <div className="p-2 bg-blue-500 bg-opacity-10 rounded-lg">
               <Database className="h-4 w-4 text-blue-500" />
             </div>
@@ -99,7 +99,7 @@ export default function MyNodes({ onNodeClick }: { onNodeClick?: (peerId: string
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-100'}">
+          <div className={`flex items-center gap-3 p-3 rounded-lg ${isDark ? 'bg-gray-700 bg-opacity-50' : 'bg-gray-100'}`}>
             <div className={`p-2 rounded-lg ${isActive ? 'bg-green-500 bg-opacity-10' : 'bg-gray-500 bg-opacity-10'}`}>
               <Clock className={`h-4 w-4 ${isActive ? 'text-green-500' : 'text-gray-500'}`} />
             </div>

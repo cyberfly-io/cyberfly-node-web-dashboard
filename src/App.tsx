@@ -51,7 +51,7 @@ function AllNodesRoute() {
 }
 
 function AppContent() {
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= 1024);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { account, initializeKadenaWallet, disconnectWallet, isInstalled } = useKadenaWallet();
@@ -74,7 +74,7 @@ function AppContent() {
       <aside
         className={`fixed inset-y-0 left-0 z-50 w-64 glass dark:glass-dark shadow-2xl transform transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 backdrop-blur-2xl ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        } lg:translate-x-0`}
       >
         <div className="flex items-center justify-between p-6 border-b border-white/20 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="flex items-center gap-3">
@@ -91,133 +91,129 @@ function AppContent() {
           </button>
         </div>
 
-          <nav className="p-4 space-y-2">
-            {navigation.map((item) => {
-              const Icon = item.icon;
-              return (
-                <NavLink
-                  key={item.path}
-                  to={item.path}
-                  onClick={() => {
-                    // Only close sidebar on mobile
-                    if (window.innerWidth < 1024) {
-                      setSidebarOpen(false);
-                    }
-                  }}
-                  className={({ isActive }) => `group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105 backdrop-blur-sm'
-                      : 'text-gray-700 dark:text-gray-300 hover:glass dark:hover:glass-dark hover:backdrop-blur-md hover:transform hover:scale-102'
-                  }`}
-                >
-                  <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                  <span className="font-semibold">{item.name}</span>
-                </NavLink>
-              );
-            })}
-          </nav>
+        <nav className="p-4 space-y-2 overflow-y-auto max-h-[calc(100vh-200px)]">
+          {navigation.map((item) => {
+            const Icon = item.icon;
+            return (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={() => {
+                  // Only close sidebar on mobile
+                  if (window.innerWidth < 1024) {
+                    setSidebarOpen(false);
+                  }
+                }}
+                className={({ isActive }) => `group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105 backdrop-blur-sm'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 hover:backdrop-blur-md'
+                }`}
+              >
+                <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <span className="font-semibold">{item.name}</span>
+              </NavLink>
+            );
+          })}
+        </nav>
 
-          <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20 dark:border-gray-700/50 glass dark:glass-dark backdrop-blur-xl">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              <p className="font-bold mb-2 text-gray-900 dark:text-white">Rust Backend</p>
-              <p className="mb-1">Version 0.1.0</p>
-              <p className="text-xs opacity-75">Iroh Network + Sled DB</p>
-            </div>
-          </div>
-        </aside>
-
-        {/* Mobile menu button */}
-        <div className={`lg:hidden fixed top-4 left-4 z-40 flex items-center gap-3 ${
-          sidebarOpen ? 'hidden' : 'flex'
-        }`}>
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-110"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-          <div className="flex items-center gap-2 px-4 py-2 glass dark:glass-dark rounded-xl shadow-xl backdrop-blur-md border border-white/30 dark:border-gray-700/50">
-            <img src="/newlogo.png" alt="CyberFly Logo" className="w-5 h-5 object-contain" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">CyberFly</h1>
+        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-white/20 dark:border-gray-700/50 bg-white/30 dark:bg-gray-800/50 backdrop-blur-xl">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="font-bold mb-2 text-gray-900 dark:text-white">Rust Backend</p>
+            <p className="mb-1">Version 0.1.0</p>
+            <p className="text-xs opacity-75">Iroh Network + Sled DB</p>
           </div>
         </div>
+      </aside>
 
-        {/* Header buttons container */}
-        <div className="fixed top-6 right-6 z-40 flex items-center gap-3">
-          {/* Wallet button */}
-          {isInstalled && (
-            <button
-              onClick={() => account ? disconnectWallet() : initializeKadenaWallet('eckoWallet')}
-              className={`px-4 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 font-semibold backdrop-blur-md ${
-                account 
-                  ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
-                  : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-              }`}
-              title={account ? 'Disconnect wallet' : 'Connect wallet'}
-            >
-              <Wallet className="w-5 h-5" />
-              {account && (
-                <span className="hidden sm:inline text-sm font-mono">
-                  {account.slice(0, 6)}...{account.slice(-4)}
-                </span>
-              )}
-            </button>
-          )}
+      {/* Mobile menu button */}
+      <div className={`lg:hidden fixed top-4 left-4 z-40 flex items-center gap-3 ${
+        sidebarOpen ? 'hidden' : 'flex'
+      }`}>
+        <button
+          onClick={() => setSidebarOpen(true)}
+          className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-110"
+        >
+          <Menu className="w-6 h-6" />
+        </button>
+        <div className="flex items-center gap-2 px-4 py-2 glass dark:glass-dark rounded-xl shadow-xl backdrop-blur-md border border-white/30 dark:border-gray-700/50">
+          <img src="/newlogo.png" alt="CyberFly Logo" className="w-5 h-5 object-contain" />
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">CyberFly</h1>
+        </div>
+      </div>
 
-          {/* Theme toggle button */}
+      {/* Header buttons container */}
+      <div className="fixed top-6 right-6 z-40 flex items-center gap-3">
+        {/* Wallet button */}
+        {isInstalled && (
           <button
-            onClick={toggleTheme}
-            className="p-3 glass dark:glass-dark rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-white/30 dark:border-gray-700/50 backdrop-blur-md"
-            title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            onClick={() => account ? disconnectWallet() : initializeKadenaWallet('eckoWallet')}
+            className={`px-4 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 font-semibold backdrop-blur-md ${
+              account 
+                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
+                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+            }`}
+            title={account ? 'Disconnect wallet' : 'Connect wallet'}
           >
-            {theme === 'dark' ? (
-              <Sun className="w-5 h-5 text-yellow-500" />
-            ) : (
-              <Moon className="w-5 h-5 text-blue-600" />
+            <Wallet className="w-5 h-5" />
+            {account && (
+              <span className="hidden sm:inline text-sm font-mono">
+                {account.slice(0, 6)}...{account.slice(-4)}
+              </span>
             )}
           </button>
-
-          {/* Settings button */}
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="p-3 glass dark:glass-dark rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-white/30 dark:border-gray-700/50 backdrop-blur-md"
-            title="Settings"
-          >
-            <Settings className="w-5 h-5 text-gray-700 dark:text-gray-300" />
-          </button>
-        </div>
-
-        {/* Main content */}
-        <main
-          className={`transition-all duration-200 ${
-            sidebarOpen ? 'lg:ml-64' : 'ml-0'
-          }`}
-        >
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/metrics" element={<Metrics />} />
-            <Route path="/my-nodes" element={<MyNodesRoute />} />
-            <Route path="/all-nodes" element={<AllNodesRoute />} />
-            <Route path="/node/:peerId" element={<NodeDetailsRoute />} />
-            <Route path="/keypair" element={<KeyPairManager />} />
-            <Route path="/submit" element={<DataSubmit />} />
-            <Route path="/query" element={<DataQuery />} />
-            <Route path="/blobs" element={<BlobManager />} />
-            <Route path="/peers" element={<PeerConnection />} />
-          </Routes>
-        </main>
-
-        {/* Settings Modal */}
-        <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
-
-        {/* Overlay for mobile */}
-        {sidebarOpen && (
-          <div
-            className="lg:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
-            onClick={() => setSidebarOpen(false)}
-          />
         )}
+
+        {/* Theme toggle button */}
+        <button
+          onClick={toggleTheme}
+          className="p-3 glass dark:glass-dark rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-white/30 dark:border-gray-700/50 backdrop-blur-md"
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          {theme === 'dark' ? (
+            <Sun className="w-5 h-5 text-yellow-500" />
+          ) : (
+            <Moon className="w-5 h-5 text-blue-600" />
+          )}
+        </button>
+
+        {/* Settings button */}
+        <button
+          onClick={() => setSettingsOpen(true)}
+          className="p-3 glass dark:glass-dark rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-110 border border-white/30 dark:border-gray-700/50 backdrop-blur-md"
+          title="Settings"
+        >
+          <Settings className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+        </button>
       </div>
+
+      {/* Main content */}
+      <main className="lg:ml-64 min-h-screen transition-all duration-300">
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/metrics" element={<Metrics />} />
+          <Route path="/my-nodes" element={<MyNodesRoute />} />
+          <Route path="/all-nodes" element={<AllNodesRoute />} />
+          <Route path="/node/:peerId" element={<NodeDetailsRoute />} />
+          <Route path="/keypair" element={<KeyPairManager />} />
+          <Route path="/submit" element={<DataSubmit />} />
+          <Route path="/query" element={<DataQuery />} />
+          <Route path="/blobs" element={<BlobManager />} />
+          <Route path="/peers" element={<PeerConnection />} />
+        </Routes>
+      </main>
+
+      {/* Settings Modal */}
+      <SettingsModal isOpen={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* Overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="lg:hidden fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </div>
   );
 }
 

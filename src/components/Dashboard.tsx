@@ -1,14 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
-import { Activity, Database, Network, HardDrive, Copy, Check, Server, Clock, TrendingUp, Coins } from 'lucide-react';
+import { Activity, Network, Copy, Check, Server, Clock, TrendingUp, Coins, RefreshCw, Search, Zap } from 'lucide-react';
 import { getNodeInfo, getDiscoveredPeers } from '../api/client';
 import { getAPY, getStakeStats } from '../services/kadena';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 
 export default function Dashboard() {
+  const [peerSearch, setPeerSearch] = useState('');
+
   const {
     data: nodeInfo,
     isLoading: isNodeLoading,
-    isError: isNodeError,
+    dataUpdatedAt: nodeUpdatedAt,
+    isFetching: isNodeFetching,
   } = useQuery({
     queryKey: ['nodeInfo'],
     queryFn: getNodeInfo,
@@ -18,6 +21,7 @@ export default function Dashboard() {
   const {
     data: peers = [],
     isLoading: arePeersLoading,
+    isFetching: arePeersFetching,
   } = useQuery({
     queryKey: ['peers'],
     queryFn: getDiscoveredPeers,
@@ -44,11 +48,29 @@ export default function Dashboard() {
     refetchInterval: 30000, // Refetch every 30 seconds
   });
 
+  // Filter peers based on search
+  const filteredPeers = useMemo(() => {
+    if (!peerSearch.trim()) return peers;
+    return peers.filter(peer => 
+      peer.peerId.toLowerCase().includes(peerSearch.toLowerCase())
+    );
+  }, [peers, peerSearch]);
+
   return (
-    <div className="p-6 space-y-8">
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
       <div className="pt-16 lg:pt-0">
-        <h1 className="text-4xl font-bold gradient-text-blue mb-2">CyberFly Node Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-400 text-lg">Monitor your decentralized network node</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl sm:text-4xl font-bold gradient-text-blue mb-1 sm:mb-2">CyberFly Node Dashboard</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg">Monitor your decentralized network node</p>
+          </div>
+          {nodeUpdatedAt && (
+            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded-lg">
+              <RefreshCw className={`w-3 h-3 ${isNodeFetching ? 'animate-spin' : ''}`} />
+              <span>Updated {formatRelativeTime(new Date(nodeUpdatedAt).toISOString())}</span>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Node Info */}
@@ -163,135 +185,191 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Staking Statistics */}
-      <div className="glass dark:glass-dark rounded-2xl shadow-2xl overflow-hidden card-hover backdrop-blur-xl border border-white/20 dark:border-gray-700/50">
-        <div className="bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 px-8 py-6 animate-gradient">
-          <div className="flex items-center gap-4">
-            <div className="bg-white/20 p-3 rounded-xl shadow-lg backdrop-blur-sm">
-              <Coins className="w-8 h-8 text-white" />
+      {/* Staking & Peers Grid - Side by side on large screens */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Staking Statistics - Takes 2 columns on xl */}
+        <div className="xl:col-span-2 glass dark:glass-dark rounded-2xl shadow-2xl overflow-hidden card-hover backdrop-blur-xl border border-white/20 dark:border-gray-700/50">
+          <div className="bg-gradient-to-r from-green-500 via-emerald-600 to-teal-600 px-6 sm:px-8 py-5 sm:py-6 animate-gradient">
+            <div className="flex items-center gap-3 sm:gap-4">
+              <div className="bg-white/20 p-2.5 sm:p-3 rounded-xl shadow-lg backdrop-blur-sm">
+                <Coins className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Staking & Rewards</h2>
+                <p className="text-green-100 text-sm sm:text-base">Node rewards and staking information</p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-white">Staking & Rewards</h2>
-              <p className="text-green-100 text-base">Node rewards and staking information</p>
-            </div>
-          </div>
-        </div>
-        
-                
-        <div className="p-6 space-y-6 backdrop-blur-xl">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <StatBox
-              icon={<TrendingUp className="w-5 h-5 text-green-600" />}
-              label="Current APY"
-              value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : isApyLoading ? 'Fetching…' : isApyError ? 'Unavailable' : 'N/A'}
-              subtitle="Annual percentage yield"
-              color="green"
-            />
-            <StatBox
-              icon={<Coins className="w-5 h-5 text-emerald-600" />}
-              label="Active Stakes"
-              value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : isStakeLoading ? 'Fetching…' : isStakeError ? 'Unavailable' : 'N/A'}
-              subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : isStakeLoading ? 'Loading active stakes…' : ''}
-              color="green"
-            />
-            <StatBox
-              icon={<Coins className="w-5 h-5 text-blue-600" />}
-              label="Total Staked"
-              value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : isStakeLoading ? 'Fetching…' : isStakeError ? 'Unavailable' : 'N/A'}
-              subtitle="Total amount staked"
-              color="blue"
-            />
           </div>
           
-          <div className="glass dark:glass-dark rounded-lg p-4 backdrop-blur-md border border-white/10 dark:border-gray-600/30">
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-              {isApyError || isStakeError
-                ? '⚠️ Unable to load staking data right now. Please check your connection.'
-                : isApyLoading || isStakeLoading
-                ? '💡 Fetching live staking data from Kadena…'
-                : '📊 Real-time staking data from Kadena blockchain (refreshes every 60s).'}
-            </p>
+          <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 backdrop-blur-xl">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+              {isApyLoading ? (
+                <SkeletonStatBox />
+              ) : (
+                <StatBox
+                  icon={<TrendingUp className="w-5 h-5 text-green-600" />}
+                  label="Current APY"
+                  value={apy !== null && apy !== undefined ? `${apy.toFixed(2)}%` : isApyError ? 'Unavailable' : 'N/A'}
+                  subtitle="Annual percentage yield"
+                  color="green"
+                />
+              )}
+              {isStakeLoading ? (
+                <SkeletonStatBox />
+              ) : (
+                <StatBox
+                  icon={<Coins className="w-5 h-5 text-emerald-600" />}
+                  label="Active Stakes"
+                  value={stakeStats?.totalStakes !== undefined ? stakeStats.totalStakes.toString() : isStakeError ? 'Unavailable' : 'N/A'}
+                  subtitle={stakeStats?.activeStakes !== undefined ? `Active: ${stakeStats.activeStakes} nodes` : ''}
+                  color="green"
+                />
+              )}
+              {isStakeLoading ? (
+                <SkeletonStatBox />
+              ) : (
+                <StatBox
+                  icon={<Zap className="w-5 h-5 text-blue-600" />}
+                  label="Total Staked"
+                  value={stakeStats?.totalStakedAmount !== undefined ? `${stakeStats.totalStakedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} CFLY` : isStakeError ? 'Unavailable' : 'N/A'}
+                  subtitle="Total amount staked"
+                  color="blue"
+                />
+              )}
+            </div>
+            
+            <div className="glass dark:glass-dark rounded-lg p-3 sm:p-4 backdrop-blur-md border border-white/10 dark:border-gray-600/30">
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center">
+                {isApyError || isStakeError
+                  ? '⚠️ Unable to load staking data right now. Please check your connection.'
+                  : isApyLoading || isStakeLoading
+                  ? '💡 Fetching live staking data from Kadena…'
+                  : '📊 Real-time staking data from Kadena blockchain (refreshes every 60s).'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Connected Peers - Takes 1 column on xl */}
+        <div className="xl:col-span-1 glass dark:glass-dark rounded-2xl shadow-2xl overflow-hidden backdrop-blur-xl border border-white/20 dark:border-gray-700/50 flex flex-col">
+          <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-6 py-4 animate-gradient">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-white/20 p-2 rounded-lg shadow-lg backdrop-blur-sm">
+                  <Network className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">Connected Peers</h2>
+                  <p className="text-blue-100 text-xs">
+                    {arePeersLoading ? 'Discovering…' : `${peers.length} discovered`}
+                  </p>
+                </div>
+              </div>
+              {arePeersFetching && !arePeersLoading && (
+                <RefreshCw className="w-4 h-4 text-white/70 animate-spin" />
+              )}
+            </div>
+          </div>
+          
+          <div className="p-4 flex-1 flex flex-col">
+            {/* Search input */}
+            {peers.length > 5 && (
+              <div className="relative mb-3">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search peers…"
+                  value={peerSearch}
+                  onChange={(e) => setPeerSearch(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition"
+                />
+              </div>
+            )}
+            
+            <div className="space-y-2 flex-1 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+              {arePeersLoading ? (
+                <div className="space-y-2">
+                  {[...Array(3)].map((_, i) => (
+                    <SkeletonPeerRow key={i} />
+                  ))}
+                </div>
+              ) : filteredPeers.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center">
+                  <Network className="w-10 h-10 text-gray-300 dark:text-gray-600 mb-3" />
+                  <p className="text-gray-500 dark:text-gray-400 text-sm">
+                    {peerSearch ? 'No peers match your search.' : 'No peers discovered yet.'}
+                  </p>
+                  {!peerSearch && (
+                    <p className="text-gray-400 dark:text-gray-500 text-xs mt-1">
+                      Ensure your node is running and reachable.
+                    </p>
+                  )}
+                </div>
+              ) : (
+                filteredPeers.map((peer) => (
+                  <div
+                    key={peer.peerId}
+                    className="group flex items-center justify-between p-2.5 bg-white/50 dark:bg-gray-800/50 rounded-lg hover:bg-white dark:hover:bg-gray-700/70 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="relative">
+                        <div className="w-2 h-2 bg-green-500 rounded-full shadow-lg shadow-green-500/50" />
+                        <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75" />
+                      </div>
+                      <code
+                        className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                        title={peer.peerId}
+                      >
+                        {peer.peerId}
+                      </code>
+                    </div>
+                    <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">
+                      {formatRelativeTime(peer.lastSeen)}
+                    </span>
+                  </div>
+                ))
+              )}
+            </div>
+            
+            {filteredPeers.length > 0 && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 text-center mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+                Live updates every 5s
+              </p>
+            )}
           </div>
         </div>
       </div>
-
-      {/* Connected Peers */}
-      <div className="glass dark:glass-dark rounded-2xl shadow-2xl p-6 backdrop-blur-xl border border-white/20 dark:border-gray-700/50">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Network className="w-5 h-5 text-blue-500" />
-            Connected Peers
-          </h2>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            {arePeersLoading ? 'Loading peers…' : `${peers.length} discovered`}
-          </span>
-        </div>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          Live view of peers discovered by your node (updates every 5s).
-        </p>
-        <div className="space-y-2 max-h-96 overflow-y-auto">
-          {arePeersLoading ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">Discovering peers…</p>
-          ) : peers.length === 0 ? (
-            <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-              No peers discovered yet. Ensure your node is running and reachable.
-            </p>
-          ) : (
-            peers.map((peer) => (
-              <div
-                key={peer.peerId}
-                className="flex items-center justify-between p-3 glass dark:glass-dark rounded-lg hover:bg-white/30 dark:hover:bg-gray-700/50 transition backdrop-blur-md border border-white/10 dark:border-gray-600/30"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
-                  <code
-                    className="text-sm font-mono text-gray-700 dark:text-gray-300 truncate"
-                    title={peer.peerId}
-                  >
-                    {peer.peerId}
-                  </code>
-                </div>
-                <span className="text-xs text-gray-500 dark:text-gray-400 whitespace-nowrap">
-                  {formatRelativeTime(peer.lastSeen)}
-                </span>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
     </div>
   );
 }
 
-interface StatCardProps {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  subtitle: string;
-  color: 'blue' | 'green' | 'purple' | 'orange';
-}
-
-function StatCard({ icon, title, value, subtitle, color }: StatCardProps) {
-  const colors = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    purple: 'bg-purple-50 text-purple-600',
-    orange: 'bg-orange-50 text-orange-600',
-  };
-
+// Skeleton loading components
+function SkeletonStatBox() {
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <div className={`inline-flex p-3 rounded-lg ${colors[color]} mb-4`}>
-        {icon}
+    <div className="glass dark:glass-dark border border-gray-200/50 dark:border-gray-700/30 rounded-xl p-4 backdrop-blur-md animate-pulse">
+      <div className="flex items-center gap-2 mb-2">
+        <div className="p-2 bg-gray-200 dark:bg-gray-700 rounded-lg w-9 h-9" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
       </div>
-      <h3 className="text-sm font-medium text-gray-600 mb-1">{title}</h3>
-      <p className="text-2xl font-bold text-gray-900 mb-1">{value}</p>
-      <p className="text-xs text-gray-500">{subtitle}</p>
+      <div className="h-7 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-1" />
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-32" />
     </div>
   );
 }
 
-// New components for improved UI
+function SkeletonPeerRow() {
+  return (
+    <div className="flex items-center justify-between p-2.5 bg-white/50 dark:bg-gray-800/50 rounded-lg animate-pulse">
+      <div className="flex items-center gap-2.5">
+        <div className="w-2 h-2 bg-gray-300 dark:bg-gray-600 rounded-full" />
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-48" />
+      </div>
+      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-12" />
+    </div>
+  );
+}
+
+// UI Components
 interface CopyableFieldProps {
   label: string;
   value: string;

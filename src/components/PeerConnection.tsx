@@ -41,7 +41,7 @@ export default function PeerConnection() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow-md p-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
         <h2 className="text-2xl font-bold mb-6 text-gray-800 dark:text-gray-200">Connect to Peer</h2>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -94,7 +94,7 @@ export default function PeerConnection() {
               type="button"
               onClick={handleClear}
               disabled={loading}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 dark:text-gray-300 hover:bg-gray-50 dark:bg-gray-700 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Clear
             </button>
@@ -149,7 +149,7 @@ export default function PeerConnection() {
         {/* Info Section */}
         <div className="mt-8 border-t border-gray-200 dark:border-gray-700 pt-6">
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">How to Find Peer IDs</h3>
-          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400 dark:text-gray-400">
+          <ul className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
             <li className="flex items-start">
               <span className="mr-2">•</span>
               <span>Your own EndpointId is displayed in the Dashboard under "Node Information"</span>

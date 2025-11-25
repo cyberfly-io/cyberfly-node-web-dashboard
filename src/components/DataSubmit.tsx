@@ -32,7 +32,7 @@ export default function DataSubmit() {
       setKey('');
       setValue('');
     },
-    onError: (error: any) => {
+    onError: (error: Error) => {
       setLatency(null);
       setResult({ error: error.message || 'Failed to submit data' });
     },
@@ -47,7 +47,7 @@ export default function DataSubmit() {
       return;
     }
 
-    let parsedValue: any = value;
+    let parsedValue: string | string[] | object = value;
     
     // Parse value based on store type
     try {
@@ -60,7 +60,7 @@ export default function DataSubmit() {
       } else if (storeType === 'SortedSet') {
         parsedValue = JSON.parse(value);
       }
-    } catch (err) {
+    } catch {
       setResult({ error: 'Invalid value format for selected store type' });
       return;
     }
@@ -119,19 +119,19 @@ export default function DataSubmit() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-gray-900 dark:text-white dark:text-gray-100 mb-6">Store Data</h1>
+      <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Store Data</h1>
 
-      <div className="bg-white dark:bg-gray-800 dark:bg-gray-800 rounded-lg shadow p-6 max-w-2xl">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 max-w-2xl">
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Store Type */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Store Type
             </label>
             <select
               value={storeType}
               onChange={(e) => setStoreType(e.target.value as DataSubmission['storeType'])}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="String">String</option>
               <option value="Hash">Hash</option>
@@ -147,7 +147,7 @@ export default function DataSubmit() {
 
           {/* Key */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Key
             </label>
             <input
@@ -156,13 +156,13 @@ export default function DataSubmit() {
               onChange={(e) => setKey(e.target.value)}
               placeholder="my_key"
               required
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
 
           {/* Value */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 dark:text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Value
             </label>
             <textarea
@@ -171,15 +171,15 @@ export default function DataSubmit() {
               placeholder={getValuePlaceholder()}
               required
               rows={4}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
             />
           </div>
 
           {/* KeyPair Status */}
           {keyPair ? (
-            <div className="p-4 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-800 font-medium mb-1">✓ KeyPair Loaded</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-400 font-mono break-all">
+            <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
+              <p className="text-sm text-green-800 dark:text-green-400 font-medium mb-1">✓ KeyPair Loaded</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 font-mono break-all">
                 Public Key: {keyPair.publicKey.substring(0, 16)}...
               </p>
               <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -187,9 +187,9 @@ export default function DataSubmit() {
               </p>
             </div>
           ) : (
-            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
-              <p className="text-sm text-yellow-800 font-medium mb-1">⚠️ No KeyPair Found</p>
-              <p className="text-xs text-gray-600 dark:text-gray-400 dark:text-gray-400">
+            <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+              <p className="text-sm text-yellow-800 dark:text-yellow-400 font-medium mb-1">⚠️ No KeyPair Found</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 Please generate a keypair in the <a href="#" onClick={(e) => { e.preventDefault(); window.location.reload(); }} className="text-blue-600 hover:underline">KeyPair page</a> before storing data.
               </p>
             </div>
