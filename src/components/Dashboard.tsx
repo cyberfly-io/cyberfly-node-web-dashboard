@@ -64,7 +64,7 @@ export default function Dashboard() {
   }, [peers, peerSearch]);
 
   return (
-    <div className="p-4 sm:p-6 space-y-6 sm:space-y-8">
+    <div className="p-4 sm:p-6 space-y-6 sm:space-y-8 text-gray-900 dark:text-gray-100">
       <div className="pt-16 lg:pt-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -324,7 +324,7 @@ export default function Dashboard() {
                   placeholder="Search peers…"
                   value={peerSearch}
                   onChange={(e) => setPeerSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition"
+                  className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition"
                 />
               </div>
             )}

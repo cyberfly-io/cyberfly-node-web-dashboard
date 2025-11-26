@@ -2,6 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base body styles for light/dark mode */
+body {
+  @apply bg-white text-gray-900;
+}
+
+html.dark body {
+  background-color: rgb(17 24 39);
+  color: rgb(255 255 255);
+}
+
+/* Base dark mode text color */
+.dark {
+  color: #ffffff;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #ffffff;
+}
+
+.dark p, .dark span, .dark label {
+  color: #e5e7eb;
+}
+
 /* Ensure form inputs are always visible */
 input,
 select,

@@ -24,11 +24,25 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = window.document.documentElement;
+    const body = document.body;
+    
+    // Update HTML element class
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
+    
+    // Update body classes for background and text
+    if (theme === 'dark') {
+      body.classList.add('bg-gray-900', 'text-white');
+      body.classList.remove('bg-white', 'text-gray-900');
+    } else {
+      body.classList.add('bg-white', 'text-gray-900');
+      body.classList.remove('bg-gray-900', 'text-white');
+    }
+    
     localStorage.setItem('theme', theme);
     console.log('Theme changed to:', theme);
     console.log('HTML classes:', root.className);
+    console.log('Body classes:', body.className);
   }, [theme]);
 
   const toggleTheme = () => {
