@@ -1,0 +1,14 @@
+{
+  "name": "iroh-streaming",
+  "version": "0.1.0",
+  "scripts": {
+    "build": "cargo build --target=wasm32-unknown-unknown && wasm-bindgen ./target/wasm32-unknown-unknown/debug/iroh_streaming.wasm --out-dir=public/wasm --weak-refs --target=web --debug",
+    "build:release": "cargo build --target=wasm32-unknown-unknown --release && wasm-bindgen ./target/wasm32-unknown-unknown/release/iroh_streaming.wasm --out-dir=public/wasm --weak-refs --target=web",
+    "serve": "servor public"
+  },
+  "author": "cyberfly",
+  "license": "MIT",
+  "dependencies": {
+    "servor": "^4.0.2"
+  }
+}
