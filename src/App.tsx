@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useParams, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LayoutDashboard, Database, Search, HardDrive, Key, Menu, X, Settings, Users, Sun, Moon, Activity, Wallet, Cloud, Network, Video } from 'lucide-react';
+import { LayoutDashboard, Database, Search, HardDrive, Key, Menu, X, Settings, Users, Sun, Moon, Activity, Wallet, Cloud, Network, Video, FileVideo } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataSubmit from './components/DataSubmit';
 import DataQuery from './components/DataQuery';
@@ -14,6 +14,7 @@ import MyNodes from './components/MyNodes';
 import AllNodes from './components/AllNodes';
 import NodeDetails from './components/NodeDetails';
 import LiveStreaming from './components/LiveStreaming';
+import VideoFileStreaming from './components/VideoFileStreaming';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { KadenaWalletProvider, useKadenaWallet } from './context/KadenaWalletContext';
 
@@ -68,6 +69,7 @@ function AppContent() {
     { path: '/blobs', name: 'Blob Storage', icon: HardDrive },
     { path: '/peers', name: 'Connect Peer', icon: Users },
     { path: '/streaming', name: 'Live Streaming', icon: Video },
+    { path: '/video-files', name: 'Video Files', icon: FileVideo },
   ];
 
   return (
@@ -203,6 +205,7 @@ function AppContent() {
           <Route path="/blobs" element={<BlobManager />} />
           <Route path="/peers" element={<PeerConnection />} />
           <Route path="/streaming" element={<LiveStreaming />} />
+          <Route path="/video-files" element={<VideoFileStreaming />} />
         </Routes>
       </main>
 

@@ -470,7 +470,14 @@ export async function joinStream(ticket: string, name: string): Promise<StreamCh
   console.log('[Streaming] Joining stream...');
   const node = await getStreamingNode();
   console.log('[Streaming] Got node, joining with ticket...');
-  const channel = await node.join_stream(ticket, name);
+  
+  // Add timeout to prevent indefinite hanging
+  const joinPromise = node.join_stream(ticket, name);
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Join timeout - could not connect to broadcaster within 30 seconds')), 30000);
+  });
+  
+  const channel = await Promise.race([joinPromise, timeoutPromise]);
   console.log('[Streaming] Channel created, starting listener...');
   const wrapper = new StreamChannel(channel);
   wrapper.startListening();
