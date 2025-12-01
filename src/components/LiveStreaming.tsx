@@ -65,47 +65,6 @@ export default function LiveStreaming() {
 
   // Stop broadcasting/watching
   const stopStreamRef = useRef<(() => void) | undefined>(undefined);
-  
-  stopStreamRef.current = () => {
-    // Close all peer connections
-    peerConnectionsRef.current.forEach((info) => {
-      info.pc.close();
-    });
-    peerConnectionsRef.current.clear();
-    pendingIceCandidatesRef.current.clear();
-    
-    if (mediaStreamRef.current) {
-      mediaStreamRef.current.getTracks().forEach(track => track.stop());
-      mediaStreamRef.current = null;
-    }
-    
-    if (localVideoRef.current) {
-      localVideoRef.current.srcObject = null;
-    }
-    
-    if (remoteVideoRef.current) {
-      remoteVideoRef.current.srcObject = null;
-    }
-    
-    if (streamChannelRef.current) {
-      const channel = streamChannelRef.current as unknown as { _presenceInterval?: NodeJS.Timeout; _retryInterval?: NodeJS.Timeout };
-      if (channel._presenceInterval) {
-        clearInterval(channel._presenceInterval);
-      }
-      if (channel._retryInterval) {
-        clearInterval(channel._retryInterval);
-      }
-      streamChannelRef.current.destroy();
-      streamChannelRef.current = null;
-    }
-    
-    setIsBroadcasting(false);
-    setIsWatching(false);
-    setStreamTicket('');
-    setNeighbors([]);
-    setChunkCount(0);
-    setConnectionState('');
-  };
 
   // Handle WebRTC signaling messages
   const handleWebRTCSignal = useCallback(async (signal: WebRTCSignal) => {
@@ -149,7 +108,6 @@ export default function LiveStreaming() {
           },
           (state) => {
             setConnectionState(state);
-            setChunkCount(prev => prev + 1);
           }
         );
         
@@ -271,36 +229,23 @@ export default function LiveStreaming() {
     }
   }, []);
 
-  // Initialize WASM on mount
-
-  useEffect(() => {
-    const init = async () => {
-      try {
-        setIsLoading(true);
-        await initWasm();
-        await getStreamingNode();
-        const id = await getEndpointId();
-        setEndpointId(id);
-        setIsInitialized(true);
-      } catch (err) {
-        setError(`Failed to initialize: ${err}`);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    init();
-    
-    return () => {
-      stopStreamRef.current?.();
-      cleanup();
-    };
-  }, []);
-
   // Handle stream events
   const handleStreamEvent = useCallback((event: StreamEvent) => {
     console.log('[Stream] Event:', event.type);
-    
+
+    const forwardSignal = (rawData?: number[]) => {
+      if (!rawData) return false;
+      const data = new Uint8Array(rawData);
+      const signal = decodeWebRTCSignal(data);
+      if (!signal) {
+        return false;
+      }
+      handleWebRTCSignal(signal).catch(err => {
+        console.error('[WebRTC] Error handling signal:', err);
+      });
+      return true;
+    };
+
     switch (event.type) {
       case 'neighborUp':
         if (event.endpointId) {
@@ -332,28 +277,15 @@ export default function LiveStreaming() {
         break;
         
       case 'mediaChunk':
-        // Check if this is a WebRTC signaling message
-        if (event.data && event.sequence !== undefined) {
-          const data = new Uint8Array(event.data);
-          const signal = decodeWebRTCSignal(data);
-          if (signal) {
-            // It's a WebRTC signal - handle it
-            handleWebRTCSignal(signal).catch(err => {
-              console.error('[WebRTC] Error handling signal:', err);
-            });
-          }
+        // Legacy fallback: some peers may still send WebRTC signals as media chunks
+        if (!forwardSignal(event.data)) {
+          setChunkCount(prev => prev + 1);
         }
         break;
 
       case 'signal':
-        if (event.data) {
-          const data = new Uint8Array(event.data);
-          const signal = decodeWebRTCSignal(data);
-          if (signal) {
-            handleWebRTCSignal(signal).catch(err => {
-              console.error('[WebRTC] Error handling signal:', err);
-            });
-          }
+        if (!forwardSignal(event.data)) {
+          console.warn('[Stream] Received signal event without decodable payload');
         }
         break;
         
@@ -362,6 +294,47 @@ export default function LiveStreaming() {
         break;
     }
   }, [handleWebRTCSignal]);
+
+  stopStreamRef.current = () => {
+    peerConnectionsRef.current.forEach((info) => {
+      info.pc.close();
+    });
+    peerConnectionsRef.current.clear();
+    pendingIceCandidatesRef.current.clear();
+
+    if (mediaStreamRef.current) {
+      mediaStreamRef.current.getTracks().forEach(track => track.stop());
+      mediaStreamRef.current = null;
+    }
+
+    if (localVideoRef.current) {
+      localVideoRef.current.srcObject = null;
+    }
+
+    if (remoteVideoRef.current) {
+      remoteVideoRef.current.srcObject = null;
+    }
+
+    if (streamChannelRef.current) {
+      const channel = streamChannelRef.current as StreamChannel & { _presenceInterval?: NodeJS.Timeout; _retryInterval?: NodeJS.Timeout };
+      channel.off('all', handleStreamEvent);
+      if (channel._presenceInterval) {
+        clearInterval(channel._presenceInterval);
+      }
+      if (channel._retryInterval) {
+        clearInterval(channel._retryInterval);
+      }
+      channel.destroy();
+      streamChannelRef.current = null;
+    }
+
+    setIsBroadcasting(false);
+    setIsWatching(false);
+    setStreamTicket('');
+    setNeighbors([]);
+    setChunkCount(0);
+    setConnectionState('');
+  };
 
   // Initialize WASM on mount
   useEffect(() => {
@@ -412,6 +385,7 @@ export default function LiveStreaming() {
       // Create gossip stream for signaling
       console.log('[Broadcast] Creating gossip stream for signaling...');
       const channel = await createStream(broadcasterName);
+      channel.setName(broadcasterName);
       streamChannelRef.current = channel;
       
       // Listen for events (WebRTC signaling comes through gossip)
@@ -478,6 +452,7 @@ export default function LiveStreaming() {
       
       // Join the gossip stream for signaling
       const channel = await joinStreamApi(ticket, broadcasterName);
+      channel.setName(broadcasterName);
       streamChannelRef.current = channel;
       
       // Listen for events (WebRTC signaling comes through gossip)
