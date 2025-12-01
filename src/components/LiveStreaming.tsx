@@ -87,11 +87,18 @@ export default function LiveStreaming() {
       case 'webrtc-request-offer': {
         // Viewer is requesting an offer - broadcaster should respond
         if (!mediaStreamRef.current) {
-          console.log('[WebRTC] Not broadcasting, ignoring request-offer');
+          console.log('[WebRTC] Not broadcasting (no mediaStream), ignoring request-offer');
           return;
         }
         
-        console.log('[WebRTC] Creating offer for peer:', signal.from?.substring(0, 8));
+        // Check if the media tracks are still active (mobile browsers suspend camera)
+        const activeTracks = mediaStreamRef.current.getTracks().filter(t => t.readyState === 'live');
+        if (activeTracks.length === 0) {
+          console.warn('[WebRTC] Media tracks ended (camera suspended?), ignoring request-offer');
+          return;
+        }
+        
+        console.log('[WebRTC] Creating offer for peer:', signal.from?.substring(0, 8), 'tracks:', activeTracks.length);
         
         // Create peer connection for this viewer
         const pc = createBroadcasterPeerConnection(
@@ -284,6 +291,7 @@ export default function LiveStreaming() {
         break;
 
       case 'signal':
+        console.log('[Stream] Signal event received, data length:', event.data?.length);
         if (!forwardSignal(event.data)) {
           console.warn('[Stream] Received signal event without decodable payload');
         }
