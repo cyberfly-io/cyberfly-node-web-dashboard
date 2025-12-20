@@ -360,10 +360,10 @@ export default function Dashboard() {
                         <div className="absolute inset-0 w-2 h-2 bg-green-500 rounded-full animate-ping opacity-75" />
                       </div>
                       <code
-                        className="text-xs font-mono text-gray-700 dark:text-gray-300 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
+                        className="text-xs font-mono text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all"
                         title={peer.peerId}
                       >
-                        {peer.peerId}
+                        <a href={`http://${peer.address ? peer.address.replace(/:\d+$/, ":31000") : peer.address}`} target="_blank" rel="noopener noreferrer">{peer.peerId}</a>
                       </code>
                     </div>
                     <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">

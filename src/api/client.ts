@@ -109,6 +109,7 @@ export async function getDiscoveredPeers(): Promise<Peer[]> {
         peerId
         connectionStatus
         lastSeen
+        address
       }
     }
   `;

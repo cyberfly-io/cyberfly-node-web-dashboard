@@ -277,11 +277,11 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
                         </div>
                         <div>
                           <div
-                            className={`font-mono text-sm font-medium ${
+                            className={`font-mono text-sm font-medium break-all ${
                               isDark ? 'text-white' : 'text-gray-900'
                             }`}
                           >
-                            {node.peer_id.slice(0, 16)}...
+                            {node.peer_id}
                           </div>
                           <div
                             className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}
