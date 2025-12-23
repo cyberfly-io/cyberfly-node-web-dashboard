@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route, NavLink, useParams, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LayoutDashboard, Database, Search, HardDrive, Key, Menu, X, Settings, Users, Sun, Moon, Activity, Wallet, Cloud, Network, Video, FileVideo } from 'lucide-react';
+import { LayoutDashboard, Database, Search, HardDrive, Key, Menu, X, Settings, Users, Sun, Moon, Activity, Wallet, Cloud, Network, Video, FileVideo, Brain } from 'lucide-react';
 import Dashboard from './components/Dashboard';
 import DataSubmit from './components/DataSubmit';
 import DataQuery from './components/DataQuery';
@@ -15,6 +15,7 @@ import AllNodes from './components/AllNodes';
 import NodeDetails from './components/NodeDetails';
 import LiveStreaming from './components/LiveStreaming';
 import VideoFileStreaming from './components/VideoFileStreaming';
+import AIInference from './components/AIInference';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import { KadenaWalletProvider, useKadenaWallet } from './context/KadenaWalletContext';
 
@@ -31,7 +32,7 @@ const queryClient = new QueryClient({
 function NodeDetailsRoute() {
   const { peerId } = useParams<{ peerId: string }>();
   const navigate = useNavigate();
-  
+
   if (!peerId) {
     navigate('/all-nodes');
     return null;
@@ -67,6 +68,7 @@ function AppContent() {
     { path: '/submit', name: 'Store Data', icon: Database },
     { path: '/query', name: 'Query Data', icon: Search },
     { path: '/blobs', name: 'Blob Storage', icon: HardDrive },
+    { path: '/ai-inference', name: 'AI Inference', icon: Brain },
     { path: '/peers', name: 'Connect Peer', icon: Users },
     { path: '/streaming', name: 'Live Streaming', icon: Video },
     { path: '/video-files', name: 'Video Files', icon: FileVideo },
@@ -76,9 +78,8 @@ function AppContent() {
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
       {/* Sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 glass dark:glass-dark shadow-2xl transform transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 backdrop-blur-2xl ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        } lg:translate-x-0`}
+        className={`fixed inset-y-0 left-0 z-50 w-64 glass dark:glass-dark shadow-2xl transform transition-all duration-300 ease-in-out border-r border-white/20 dark:border-gray-700/50 backdrop-blur-2xl ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } lg:translate-x-0`}
       >
         <div className="flex items-center justify-between p-6 border-b border-white/20 dark:border-gray-700/50 bg-gradient-to-r from-blue-600 to-purple-600">
           <div className="flex items-center gap-3">
@@ -108,11 +109,10 @@ function AppContent() {
                     setSidebarOpen(false);
                   }
                 }}
-                className={({ isActive }) => `group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105 backdrop-blur-sm'
-                    : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 hover:backdrop-blur-md'
-                }`}
+                className={({ isActive }) => `group w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
+                  ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-xl transform scale-105 backdrop-blur-sm'
+                  : 'text-gray-700 dark:text-gray-300 hover:bg-white/50 dark:hover:bg-gray-700/50 hover:backdrop-blur-md'
+                  }`}
               >
                 <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                 <span className="font-semibold">{item.name}</span>
@@ -131,9 +131,8 @@ function AppContent() {
       </aside>
 
       {/* Mobile menu button */}
-      <div className={`lg:hidden fixed top-4 left-4 z-40 flex items-center gap-3 ${
-        sidebarOpen ? 'hidden' : 'flex'
-      }`}>
+      <div className={`lg:hidden fixed top-4 left-4 z-40 flex items-center gap-3 ${sidebarOpen ? 'hidden' : 'flex'
+        }`}>
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl shadow-2xl hover:shadow-xl transition-all duration-300 hover:scale-110"
@@ -152,11 +151,10 @@ function AppContent() {
         {isInstalled && (
           <button
             onClick={() => account ? disconnectWallet() : initializeKadenaWallet('eckoWallet')}
-            className={`px-4 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 font-semibold backdrop-blur-md ${
-              account 
-                ? 'bg-gradient-to-r from-green-500 to-green-600 text-white' 
-                : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-            }`}
+            className={`px-4 py-3 rounded-xl shadow-xl hover:shadow-2xl transition-all duration-300 hover:scale-105 flex items-center gap-2 font-semibold backdrop-blur-md ${account
+              ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
+              : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+              }`}
             title={account ? 'Disconnect wallet' : 'Connect wallet'}
           >
             <Wallet className="w-5 h-5" />
@@ -203,6 +201,7 @@ function AppContent() {
           <Route path="/submit" element={<DataSubmit />} />
           <Route path="/query" element={<DataQuery />} />
           <Route path="/blobs" element={<BlobManager />} />
+          <Route path="/ai-inference" element={<AIInference />} />
           <Route path="/peers" element={<PeerConnection />} />
           <Route path="/streaming" element={<LiveStreaming />} />
           <Route path="/video-files" element={<VideoFileStreaming />} />

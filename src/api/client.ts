@@ -3,7 +3,7 @@ import axios from 'axios';
 // Get host based on deployment environment
 function getHost(): string {
   const hostname = window.location.hostname;
-  
+
   if (hostname.includes('runonflux')) {
     return hostname;
   } else if (hostname.includes('.cyberfly.io')) {
@@ -21,18 +21,24 @@ export function getApiBaseUrl(): string {
   if (stored) {
     return stored;
   }
-  
+
   const host = getHost();
   const protocol = window.location.protocol; // Get the current protocol
   return `${protocol}//${host}`;
 }
 
 const API_BASE_URL = getApiBaseUrl();
-const GRAPHQL_ENDPOINT = `${API_BASE_URL}/graphql`;
+
+// Use relative path for local development (Vite proxy) or full URL for production
+const isLocalDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const GRAPHQL_ENDPOINT = isLocalDev ? '/graphql' : `${API_BASE_URL}/graphql`;
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 30000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 // GraphQL Query Helper
@@ -41,11 +47,11 @@ export async function graphqlQuery<T>(query: string, variables?: Record<string, 
     query,
     variables,
   });
-  
+
   if (response.data.errors) {
     throw new Error(response.data.errors[0].message);
   }
-  
+
   return response.data.data;
 }
 
@@ -137,10 +143,10 @@ export interface DataSubmission {
 export async function submitData(data: DataSubmission): Promise<string> {
   // Generate dbName if not provided
   const dbName = data.dbName || `mydb-${data.publicKey}`;
-  
+
   // Convert value to JSON string
   const valueStr = typeof data.value === 'string' ? data.value : JSON.stringify(data.value);
-  
+
   const mutation = `
     mutation($input: SignedData!) {
       submitData(input: $input) {
@@ -149,7 +155,7 @@ export async function submitData(data: DataSubmission): Promise<string> {
       }
     }
   `;
-  
+
   const input = {
     dbName,
     key: data.key,
@@ -165,15 +171,15 @@ export async function submitData(data: DataSubmission): Promise<string> {
     ...(data.longitude !== undefined && { longitude: data.longitude }),
     ...(data.latitude !== undefined && { latitude: data.latitude }),
   };
-  
+
   const result = await graphqlQuery<{ submitData: { success: boolean; message: string } }>(mutation, {
     input,
   });
-  
+
   if (!result.submitData.success) {
     throw new Error(result.submitData.message);
   }
-  
+
   return result.submitData.message;
 }
 
@@ -372,9 +378,9 @@ export async function getDataByDbName(dbName: string): Promise<DataEntry[]> {
       }
     }
   `;
-  
+
   const result = await graphqlQuery<{ getAll: any[] }>(query, { dbName });
-  
+
   return result.getAll.map((item: any) => ({
     key: item.key.replace(`${dbName}:`, ''), // Remove dbName prefix
     storeType: item.storeType,
@@ -391,11 +397,11 @@ export async function getDataByDbName(dbName: string): Promise<DataEntry[]> {
 export async function uploadBlob(file: File): Promise<string> {
   const formData = new FormData();
   formData.append('blob', file);
-  
+
   const response = await axiosInstance.post('/blobs/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  
+
   return response.data.hash;
 }
 
@@ -403,7 +409,7 @@ export async function downloadBlob(hash: string): Promise<Blob> {
   const response = await axiosInstance.get(`/blobs/${hash}`, {
     responseType: 'blob',
   });
-  
+
   return response.data;
 }
 
@@ -434,6 +440,161 @@ export async function dialPeer(peerId: string): Promise<{ success: boolean; mess
   }
 
   return response.data.data.dialPeer;
+}
+
+// AI Inference
+export interface InferenceJobInput {
+  modelName: string;
+  inputUri: string;
+  maxLatencyMs?: number;
+}
+
+export interface InferenceJobSubmitResult {
+  success: boolean;
+  message: string;
+  jobId: string;
+}
+
+export async function submitInferenceJob(input: InferenceJobInput): Promise<InferenceJobSubmitResult> {
+  const mutation = `
+    mutation($input: InferenceJobInput!) {
+      submitInferenceJob(input: $input) {
+        success
+        message
+        jobId
+      }
+    }
+  `;
+
+  // GraphQL expects snake_case for input fields usually, unless mapped.
+  // Based on Rust structs using standard serde/async-graphql, fields are usually camelCase in GraphQL if not specified otherwise.
+  // However, Rust field `model_name` usually becomes `modelName` in GraphQL.
+  // Let's assume standard mapping: code uses snake_case struct fields, GraphQL exposes camelCase.
+
+  const result = await graphqlQuery<{ submitInferenceJob: InferenceJobSubmitResult }>(mutation, {
+    input,
+  });
+
+  return result.submitInferenceJob;
+}
+
+// Get Inference Job Status
+export interface InferenceJob {
+  jobId: string;
+  modelName: string;
+  inputUri: string;
+  maxLatencyMs: number;
+  status: string;
+  createdAt: number;
+  requester: string;
+}
+
+export async function getInferenceJob(jobId: string): Promise<InferenceJob | null> {
+  const query = `
+    query($jobId: String!) {
+      getInferenceJob(jobId: $jobId) {
+        jobId
+        modelName
+        inputUri
+        maxLatencyMs
+        status
+        createdAt
+        requester
+      }
+    }
+  `;
+
+  try {
+    const result = await graphqlQuery<{ getInferenceJob: InferenceJob | null }>(query, { jobId });
+    return result.getInferenceJob;
+  } catch {
+    return null;
+  }
+}
+
+// Get Inference Result
+export interface InferenceResult {
+  jobId: string;
+  nodeId: string;
+  outputUri: string;
+  latencyMs: number;
+  completedAt: number;
+  success: boolean;
+  error?: string;
+}
+
+// File Metadata
+export interface FileMetadata {
+  filename: string;
+  mimeType: string;
+  sizeBytes: number;
+}
+
+// Inference Result Metadata (enhanced)
+export interface InferenceResultMetadata {
+  jobId: string;
+  outputType: string;
+  outputBlobHash: string;
+  fileMetadata?: FileMetadata;
+  completedAt: string;
+  success: boolean;
+  error?: string;
+  latencyMs: number;
+  nodeId: string;
+}
+
+export async function getInferenceResult(jobId: string): Promise<InferenceResult | null> {
+  const query = `
+    query($jobId: String!) {
+      getInferenceResult(jobId: $jobId) {
+        jobId
+        nodeId
+        outputUri
+        latencyMs
+        completedAt
+        success
+        error
+      }
+    }
+  `;
+
+  try {
+    const result = await graphqlQuery<{ getInferenceResult: InferenceResult | null }>(query, { jobId });
+    return result.getInferenceResult;
+  } catch {
+    return null;
+  }
+}
+
+// Get Inference Result Metadata (enhanced with file info)
+export async function getInferenceResultMetadata(jobId: string): Promise<InferenceResultMetadata | null> {
+  const query = `
+    query($jobId: String!) {
+      getInferenceResultMetadata(jobId: $jobId) {
+        jobId
+        outputType
+        outputBlobHash
+        fileMetadata {
+          filename
+          mimeType
+          sizeBytes
+        }
+        completedAt
+        success
+        error
+        latencyMs
+        nodeId
+      }
+    }
+  `;
+
+  try {
+    const result = await graphqlQuery<{ getInferenceResultMetadata: InferenceResultMetadata | null }>(query, { jobId });
+    return result.getInferenceResultMetadata;
+  } catch (error) {
+    console.error('Error fetching inference result metadata:', error);
+    return null;
+  }
 }
 
 export default axiosInstance;
