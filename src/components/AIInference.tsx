@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { submitInferenceJob, uploadBlob, getApiBaseUrl, getInferenceJob, getInferenceResultMetadata } from '../api/client';
 import type { InferenceJobSubmitResult, InferenceResultMetadata } from '../api/client';
-import { Brain, Upload, Play, FileText, Loader2, AlertCircle, CheckCircle2, Clock, Music, Download } from 'lucide-react';
+import { Brain, Upload, Play, FileText, Loader2, AlertCircle, CheckCircle2, Clock, Music } from 'lucide-react';
 
 const AVAILABLE_MODELS = [
     { id: 'mobilenet_v4', name: 'MobileNet V4 (Image Classification)', type: 'image' },
@@ -20,6 +20,8 @@ export default function AIInference() {
     const [inferenceResult, setInferenceResult] = useState<InferenceResultMetadata | null>(null);
     const [jobStatus, setJobStatus] = useState<string | null>(null);
     const [polling, setPolling] = useState(false);
+    const [blobContent, setBlobContent] = useState<string | null>(null);
+    const [blobLoading, setBlobLoading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -104,6 +106,53 @@ export default function AIInference() {
             }
         };
     }, [result?.success, result?.jobId]); // Don't include polling or pollJobStatus in dependencies!
+
+    // Fetch blob content when inference result is available
+    useEffect(() => {
+        async function fetchBlobContent() {
+            if (!inferenceResult?.outputBlobHash) {
+                return;
+            }
+
+            const mimeType = inferenceResult.fileMetadata?.mimeType || '';
+            const outputType = inferenceResult.outputType || '';
+
+            // Fetch content for JSON or text-based types
+            // Images and audio are handled by their native elements
+            if (mimeType === 'application/json' ||
+                mimeType.startsWith('text/') ||
+                outputType === 'json' ||
+                outputType.startsWith('text')) {
+
+                setBlobLoading(true);
+                try {
+                    const response = await fetch(`${getApiBaseUrl()}/blobs/${inferenceResult.outputBlobHash}`);
+                    const text = await response.text();
+
+                    // Try to prettify JSON
+                    if (mimeType === 'application/json' || outputType === 'json') {
+                        try {
+                            const parsed = JSON.parse(text);
+                            setBlobContent(JSON.stringify(parsed, null, 2));
+                        } catch {
+                            setBlobContent(text);
+                        }
+                    } else {
+                        setBlobContent(text);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch blob content:', error);
+                    setBlobContent(null);
+                } finally {
+                    setBlobLoading(false);
+                }
+            } else {
+                setBlobContent(null);
+            }
+        }
+
+        fetchBlobContent();
+    }, [inferenceResult?.outputBlobHash, inferenceResult?.fileMetadata, inferenceResult?.outputType]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -395,12 +444,12 @@ export default function AIInference() {
                                                 )}
 
                                                 {/* Result Preview based on type */}
-                                                {inferenceResult.outputBlobHash && inferenceResult.fileMetadata && (
+                                                {inferenceResult.outputBlobHash && (
                                                     <div className="mb-3">
                                                         <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 block mb-2">Result Preview:</span>
 
-                                                        {/* Image Preview */}
-                                                        {inferenceResult.fileMetadata.mimeType.startsWith('image/') && (
+                                                        {/* Image Preview - only when fileMetadata indicates image */}
+                                                        {inferenceResult.fileMetadata?.mimeType?.startsWith('image/') && (
                                                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                                                                 <img
                                                                     src={`${getApiBaseUrl()}/blobs/${inferenceResult.outputBlobHash}`}
@@ -411,22 +460,27 @@ export default function AIInference() {
                                                             </div>
                                                         )}
 
-                                                        {/* JSON Preview */}
-                                                        {(inferenceResult.fileMetadata.mimeType === 'application/json' ||
-                                                            inferenceResult.outputType === 'json') && (
+                                                        {/* JSON Preview - check outputType OR mimeType */}
+                                                        {(inferenceResult.outputType === 'json' ||
+                                                            inferenceResult.fileMetadata?.mimeType === 'application/json') && (
                                                                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 max-h-96 overflow-auto">
-                                                                    <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
-                                                                        <iframe
-                                                                            src={`${getApiBaseUrl()}/blobs/${inferenceResult.outputBlobHash}`}
-                                                                            className="w-full h-64 border-0"
-                                                                            title="JSON result"
-                                                                        />
-                                                                    </pre>
+                                                                    {blobLoading ? (
+                                                                        <div className="flex items-center justify-center py-4">
+                                                                            <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                                                                            <span className="ml-2 text-sm text-gray-500">Loading content...</span>
+                                                                        </div>
+                                                                    ) : blobContent ? (
+                                                                        <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                                                                            {blobContent}
+                                                                        </pre>
+                                                                    ) : (
+                                                                        <span className="text-sm text-gray-500">Unable to load content</span>
+                                                                    )}
                                                                 </div>
                                                             )}
 
                                                         {/* Audio Preview */}
-                                                        {inferenceResult.fileMetadata.mimeType.startsWith('audio/') && (
+                                                        {inferenceResult.fileMetadata?.mimeType?.startsWith('audio/') && (
                                                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
                                                                 <audio
                                                                     controls
@@ -439,36 +493,33 @@ export default function AIInference() {
                                                         )}
 
                                                         {/* Text Preview */}
-                                                        {inferenceResult.fileMetadata.mimeType.startsWith('text/') && (
+                                                        {inferenceResult.fileMetadata?.mimeType?.startsWith('text/') && (
                                                             <div className="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700 max-h-96 overflow-auto">
-                                                                <iframe
-                                                                    src={`${getApiBaseUrl()}/blobs/${inferenceResult.outputBlobHash}`}
-                                                                    className="w-full h-64 border-0"
-                                                                    title="Text result"
-                                                                />
+                                                                {blobLoading ? (
+                                                                    <div className="flex items-center justify-center py-4">
+                                                                        <Loader2 className="w-5 h-5 animate-spin text-blue-500" />
+                                                                        <span className="ml-2 text-sm text-gray-500">Loading content...</span>
+                                                                    </div>
+                                                                ) : blobContent ? (
+                                                                    <pre className="text-xs font-mono text-gray-800 dark:text-gray-200 whitespace-pre-wrap">
+                                                                        {blobContent}
+                                                                    </pre>
+                                                                ) : (
+                                                                    <span className="text-sm text-gray-500">Unable to load content</span>
+                                                                )}
                                                             </div>
                                                         )}
                                                     </div>
                                                 )}
 
-                                                {/* Blob Hash & Download */}
+
+                                                {/* Blob Hash */}
                                                 {inferenceResult.outputBlobHash && (
                                                     <div className="mb-2">
-                                                        <span className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Output Blob:</span>
-                                                        <div className="flex items-center gap-2">
-                                                            <code className="flex-1 text-xs font-mono text-gray-700 dark:text-gray-300 break-all bg-white/50 dark:bg-gray-800/50 p-2 rounded">
-                                                                {inferenceResult.outputBlobHash}
-                                                            </code>
-                                                            <a
-                                                                href={`${getApiBaseUrl()}/blobs/${inferenceResult.outputBlobHash}`}
-                                                                download
-                                                                className="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded-lg transition-colors"
-                                                                title="Download result"
-                                                            >
-                                                                <Download className="w-4 h-4" />
-                                                                Download
-                                                            </a>
-                                                        </div>
+                                                        <span className="text-sm text-gray-600 dark:text-gray-400 block mb-1">Output Blob Hash:</span>
+                                                        <code className="text-xs font-mono text-gray-700 dark:text-gray-300 break-all bg-white/50 dark:bg-gray-800/50 p-2 rounded block">
+                                                            {inferenceResult.outputBlobHash}
+                                                        </code>
                                                     </div>
                                                 )}
                                             </>
