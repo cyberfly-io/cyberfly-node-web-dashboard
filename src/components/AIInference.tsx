@@ -7,7 +7,7 @@ const AVAILABLE_MODELS = [
     { id: 'mobilenet_v4', name: 'MobileNet V4 (Image Classification)', type: 'image' },
     { id: 'yolo11n', name: 'YOLO v11 Nano (Object Detection)', type: 'image' },
     { id: 'segformer', name: 'SegFormer (Image Segmentation)', type: 'image' },
-    { id: 'easyocr_en', name: 'EasyOCR English (Text Recognition)', type: 'image' },
+    { id: 'paddleocr_en', name: 'PaddleOCR English (Text Recognition)', type: 'image' },
     { id: 'silero_vad', name: 'Silero VAD (Voice Activity Detection)', type: 'audio' },
     { id: 'dtln_denoise', name: 'DTLN (Audio Denoising)', type: 'audio' },
 ];
