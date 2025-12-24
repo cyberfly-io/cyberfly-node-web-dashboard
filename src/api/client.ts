@@ -19,7 +19,8 @@ function getHost(): string {
 export function getApiBaseUrl(): string {
   const stored = localStorage.getItem('cyberfly_api_url');
   if (stored) {
-    return stored;
+    // Remove trailing slash to prevent double slashes in URL construction
+    return stored.replace(/\/+$/, '');
   }
 
   const host = getHost();
