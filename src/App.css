@@ -1,3 +1,5 @@
+/* Legacy Vite boilerplate retained intentionally empty;
+   global styling is owned by src/index.css and src/styles/animations.css. */
 #root {
   max-width: 1280px;
   margin: 0 auto;

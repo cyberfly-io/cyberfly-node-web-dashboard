@@ -2,6 +2,228 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================================================
+   CyberFly • High-Tech Theme Tokens
+   =================================================================== */
+:root {
+  --cf-bg: #f6f8ff;
+  --cf-surface: rgba(255, 255, 255, 0.72);
+  --cf-surface-strong: rgba(255, 255, 255, 0.9);
+  --cf-border: rgba(15, 23, 42, 0.08);
+  --cf-border-strong: rgba(15, 23, 42, 0.14);
+  --cf-text: #0f172a;
+  --cf-text-muted: #475569;
+
+  --cf-cyan: #06b6d4;
+  --cf-cyan-bright: #22d3ee;
+  --cf-violet: #8b5cf6;
+  --cf-pink: #ec4899;
+
+  color-scheme: light;
+}
+
+html.dark {
+  --cf-bg: #05070f;
+  --cf-surface: rgba(15, 23, 42, 0.55);
+  --cf-surface-strong: rgba(15, 23, 42, 0.78);
+  --cf-border: rgba(148, 163, 184, 0.14);
+  --cf-border-strong: rgba(148, 163, 184, 0.25);
+  --cf-text: #e2e8f0;
+  --cf-text-muted: #94a3b8;
+
+  color-scheme: dark;
+}
+
+/* ===================================================================
+   Base resets & typography
+   =================================================================== */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  letter-spacing: -0.01em;
+}
+
+body {
+  background-color: var(--cf-bg);
+  color: var(--cf-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(1000px 500px at 110% 10%, rgba(139, 92, 246, 0.14), transparent 60%),
+    radial-gradient(900px 500px at 50% 120%, rgba(236, 72, 153, 0.10), transparent 60%);
+  background-attachment: fixed;
+}
+
+html.dark body {
+  background-image:
+    radial-gradient(1200px 600px at 10% -10%, rgba(34, 211, 238, 0.22), transparent 55%),
+    radial-gradient(1000px 500px at 110% 10%, rgba(139, 92, 246, 0.22), transparent 55%),
+    radial-gradient(900px 500px at 50% 120%, rgba(236, 72, 153, 0.14), transparent 60%);
+}
+
+/* Ambient grid overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(15, 23, 42, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 40%, black 40%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, black 40%, transparent 75%);
+  z-index: 0;
+}
+
+html.dark body::before {
+  background-image:
+    linear-gradient(to right, rgba(148, 163, 184, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.07) 1px, transparent 1px);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+}
+
+code, pre, .font-mono {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
+  color: #f1f5f9;
+}
+
+.dark p, .dark span, .dark label {
+  color: #cbd5e1;
+}
+
+/* ===================================================================
+   Form fields
+   =================================================================== */
+input,
+select,
+textarea {
+  color: rgb(15 23 42);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.35);
+  border-color: rgba(34, 211, 238, 0.6);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgb(100 116 139);
+}
+
+.dark input,
+.dark select,
+.dark textarea {
+  background-color: rgba(15, 23, 42, 0.7) !important;
+  color: #e2e8f0 !important;
+  border-color: rgba(148, 163, 184, 0.18) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgb(148 163 184) !important;
+}
+
+.dark select option {
+  background-color: rgb(15 23 42);
+  color: #e2e8f0;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dark input:disabled,
+.dark select:disabled,
+.dark textarea:disabled {
+  background-color: rgba(2, 6, 23, 0.6) !important;
+  color: rgb(100 116 139) !important;
+}
+
+/* Selection */
+::selection {
+  background: rgba(34, 211, 238, 0.35);
+  color: #0f172a;
+}
+.dark ::selection {
+  background: rgba(34, 211, 238, 0.45);
+  color: #f8fafc;
+}
+
+/* ===================================================================
+   Scrollbars
+   =================================================================== */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.5) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.5), rgba(139, 92, 246, 0.5));
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(34, 211, 238, 0.85), rgba(139, 92, 246, 0.85));
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(100, 116, 139, 0.35);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 211, 238, 0.6);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Base body styles for light/dark mode */
 body {
   @apply bg-white text-gray-900;
