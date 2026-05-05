@@ -220,9 +220,7 @@ textarea:disabled {
   background-clip: padding-box;
   border: 2px solid transparent;
 }
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+
 
 /* Base body styles for light/dark mode */
 body {
