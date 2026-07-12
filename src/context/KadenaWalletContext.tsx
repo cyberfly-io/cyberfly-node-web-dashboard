@@ -21,6 +21,21 @@ interface NotificationState {
   severity: 'success' | 'error' | 'warning' | 'info';
 }
 
+interface AccountInfo {
+  wallet?: { account: string };
+  status?: string;
+}
+
+interface ConnectResult {
+  status?: string;
+}
+
+interface NetworkInfo {
+  networkId?: string;
+}
+
+type KadenaExtension = NonNullable<Window['kadena']>;
+
 const KadenaWalletContext = createContext<KadenaWalletContextType | undefined>(undefined);
 
 export const useKadenaWallet = () => {
@@ -33,17 +48,6 @@ export const useKadenaWallet = () => {
 
 const NETWORKID = 'mainnet01';
 
-interface KadenaExtension {
-  isKadena: boolean;
-  request: (params: { method: string; networkId?: string; data?: unknown }) => Promise<unknown>;
-}
-
-declare global {
-  interface Window {
-    kadena?: KadenaExtension;
-  }
-}
-
 export const KadenaWalletProvider = ({ children }: { children: ReactNode }) => {
   const [notification, setNotification] = useState<NotificationState>({
     open: false,
@@ -52,9 +56,6 @@ export const KadenaWalletProvider = ({ children }: { children: ReactNode }) => {
   });
 
   const [kadenaExt, setKadenaExt] = useState<KadenaExtension | null>(null);
-  const [account, setAccount] = useState<string | null>(
-    localStorage.getItem('kadenaAccount')
-  );
   
   const [kadenaWalletState, setKadenaWalletState] = useState<KadenaWalletState>(() => {
     const saved = localStorage.getItem('KadenaWalletState');
@@ -112,49 +113,37 @@ export const KadenaWalletProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [kadenaWalletState]);
 
-  const getNetworkInfo = async () => {
+  const getNetworkInfo = async (): Promise<NetworkInfo | null> => {
     if (!kadenaExt) return null;
     try {
-      const network = await kadenaExt.request({
+      return await kadenaExt.request<NetworkInfo>({
         method: 'kda_getNetwork',
       });
-      return network;
     } catch (error) {
       console.error('Error fetching network info:', error);
       return null;
     }
   };
 
-  const checkStatus = async () => {
-    if (!kadenaExt) return;
-    await kadenaExt.request({
-      method: 'kda_checkStatus',
-      networkId: NETWORKID,
-    });
-  };
-
-  const connectWallet = async () => {
+  const connectWallet = async (): Promise<ConnectResult> => {
     if (!kadenaExt) return { status: 'fail' };
-    const connect = await kadenaExt.request({
+    return await kadenaExt.request<ConnectResult>({
       method: 'kda_connect',
       networkId: NETWORKID,
     });
-    return connect;
   };
 
-  const getAccountInfo = async () => {
+  const getAccountInfo = async (): Promise<AccountInfo | null> => {
     if (!kadenaExt) return null;
-    const account = await kadenaExt.request({
+    return await kadenaExt.request<AccountInfo>({
       method: 'kda_requestAccount',
       networkId: NETWORKID,
     });
-    return account;
   };
 
   const setAccountData = async () => {
     const acc = await getAccountInfo();
     if (acc?.wallet) {
-      setAccount(acc.wallet.account);
       setKadenaWalletState({
         account: acc.wallet.account,
         isInstalled: true,
@@ -199,7 +188,6 @@ export const KadenaWalletProvider = ({ children }: { children: ReactNode }) => {
         method: 'kda_disconnect',
         networkId: NETWORKID,
       });
-      setAccount(null);
       localStorage.removeItem('kadenaAccount');
       showNotification('Wallet Disconnected', 'success');
     }
@@ -208,7 +196,7 @@ export const KadenaWalletProvider = ({ children }: { children: ReactNode }) => {
   const requestSign = async (signingCmd: unknown) => {
     if (!kadenaExt) return null;
     const account = await getAccountInfo();
-    if ((account as { status?: string })?.status === 'fail') {
+    if (account?.status === 'fail') {
       showNotification('Wallet disconnected', 'error');
       return null;
     } else {

@@ -92,6 +92,7 @@ export interface Peer {
   peerId: string;
   connectionStatus: string;
   lastSeen: string;
+  address?: string;
 }
 
 export async function getConnectedPeers(): Promise<Peer[]> {

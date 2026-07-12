@@ -363,7 +363,11 @@ export default function Dashboard() {
                         className="text-xs font-mono text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors break-all"
                         title={peer.peerId}
                       >
-                        <a href={`http://${peer.address ? peer.address.replace(/:\d+$/, ":31000") : peer.address}`} target="_blank" rel="noopener noreferrer">{peer.peerId}</a>
+                        {peer.address ? (
+                          <a href={`http://${peer.address.replace(/:\d+$/, ":31000")}`} target="_blank" rel="noopener noreferrer">{peer.peerId}</a>
+                        ) : (
+                          peer.peerId
+                        )}
                       </code>
                     </div>
                     <span className="text-xs text-gray-400 dark:text-gray-500 whitespace-nowrap ml-2">

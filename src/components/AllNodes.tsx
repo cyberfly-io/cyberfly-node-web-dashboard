@@ -61,10 +61,10 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
     const isActive = status === 'active' || status === 'online';
     return (
       <span
-        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${
+        className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold backdrop-blur-sm ${
           isActive
-            ? 'bg-green-500/20 text-green-500'
-            : 'bg-gray-500/20 text-gray-500'
+            ? 'bg-green-500/15 text-green-400 border border-green-500/20'
+            : 'bg-ink-500/15 text-ink-400 border border-ink-500/20'
         }`}
       >
         {isActive ? <Activity className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
@@ -82,10 +82,10 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
     <div className="space-y-8 p-6">
       {/* Header */}
       <div
-        className={`rounded-2xl border p-8 shadow-xl animate-gradient ${
+        className={`glass-panel rounded-2xl border p-8 animate-gradient ${
           isDark
-            ? 'border-gray-700 bg-gradient-to-r from-blue-900/50 via-teal-900/50 to-cyan-900/50'
-            : 'border-gray-200 bg-gradient-to-r from-blue-100 via-teal-100 to-cyan-100'
+            ? 'border-white/10 bg-gradient-to-r from-blue-900/50 via-teal-900/50 to-cyan-900/50'
+            : 'border-white/20 bg-gradient-to-r from-blue-100 via-teal-100 to-cyan-100'
         }`}
       >
         <div className="flex items-center justify-between">
@@ -93,18 +93,14 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
             <h2 className={`mb-3 text-4xl font-bold gradient-text-blue`}>
               Network Nodes
             </h2>
-            <p className={`text-lg ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            <p className={`text-lg ${isDark ? 'text-ink-300' : 'text-ink-600'}`}>
               Browse and monitor all active nodes in the Cyberfly network
             </p>
           </div>
                     <button
             onClick={loadNodes}
             disabled={loading}
-            className={`flex items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl ${
-              isDark
-                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white hover:from-blue-700 hover:to-blue-800 disabled:from-gray-700 disabled:to-gray-800'
-                : 'bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:from-blue-600 hover:to-blue-700 disabled:from-gray-300 disabled:to-gray-400'
-            }`}
+            className={`btn-neon flex items-center gap-2 rounded-xl px-6 py-3 font-semibold transition-all duration-300 transform hover:scale-105`}
           >
             <RefreshCw className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
             Refresh
@@ -115,10 +111,10 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
       {/* Statistics */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-3">
         <div
-          className={`rounded-xl border p-6 text-center card-hover shadow-lg ${
+          className={`glass-panel rounded-2xl border p-6 text-center card-hover ${
             isDark
-              ? 'border-gray-700 bg-gradient-to-br from-blue-900/50 to-blue-800/50'
-              : 'border-gray-200 bg-gradient-to-br from-blue-50 to-blue-100'
+              ? 'border-white/10 bg-gradient-to-br from-blue-900/50 to-blue-800/50'
+              : 'border-white/20 bg-gradient-to-br from-blue-50 to-blue-100'
           }`}
         >
           <div className="mb-3 flex justify-center">
@@ -129,16 +125,16 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
           <div className={`text-4xl font-bold ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
             {nodes.length}
           </div>
-          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-ink-400' : 'text-ink-500'}`}>
             Total Nodes
           </div>
         </div>
 
         <div
-          className={`rounded-xl border p-6 text-center card-hover shadow-lg ${
+          className={`glass-panel rounded-2xl border p-6 text-center card-hover ${
             isDark
-              ? 'border-gray-700 bg-gradient-to-br from-green-900/50 to-green-800/50'
-              : 'border-gray-200 bg-gradient-to-br from-green-50 to-green-100'
+              ? 'border-white/10 bg-gradient-to-br from-green-900/50 to-green-800/50'
+              : 'border-white/20 bg-gradient-to-br from-green-50 to-green-100'
           }`}
         >
           <div className="mb-3 flex justify-center">
@@ -149,16 +145,16 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
           <div className={`text-4xl font-bold ${isDark ? 'text-green-400' : 'text-green-600'}`}>
             {activeNodesCount}
           </div>
-          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-ink-400' : 'text-ink-500'}`}>
             Active Nodes
           </div>
         </div>
 
         <div
-          className={`rounded-xl border p-6 text-center card-hover shadow-lg ${
+          className={`glass-panel rounded-2xl border p-6 text-center card-hover ${
             isDark
-              ? 'border-gray-700 bg-gradient-to-br from-teal-900/50 to-teal-800/50'
-              : 'border-gray-200 bg-gradient-to-br from-teal-50 to-teal-100'
+              ? 'border-white/10 bg-gradient-to-br from-teal-900/50 to-teal-800/50'
+              : 'border-white/20 bg-gradient-to-br from-teal-50 to-teal-100'
           }`}
         >
           <div className="mb-3 flex justify-center">
@@ -169,7 +165,7 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
           <div className={`text-4xl font-bold ${isDark ? 'text-teal-400' : 'text-teal-600'}`}>
             {activePercentage}%
           </div>
-          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+          <div className={`mt-2 text-sm font-medium ${isDark ? 'text-ink-400' : 'text-ink-500'}`}>
             Health Rate
           </div>
         </div>
@@ -177,27 +173,21 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
 
       {/* Search and Filter */}
       <div
-        className={`rounded-xl border p-6 shadow-lg ${
-          isDark ? 'border-gray-700 bg-gradient-to-br from-gray-800 to-gray-900' : 'border-gray-200 bg-gradient-to-br from-white to-gray-50'
+        className={`glass-panel rounded-2xl border p-6 ${
+          isDark ? 'border-white/10' : 'border-white/20'
         }`}
       >
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="relative flex-1">
             <Search
-              className={`absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 ${
-                isDark ? 'text-gray-500' : 'text-gray-400'
-              }`}
+              className={`absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-ink-400`}
             />
             <input
               type="text"
               placeholder="Search by Peer ID, IP address, or status..."
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-              className={`w-full rounded-xl border py-3 pl-12 pr-4 text-base font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                isDark
-                  ? 'border-gray-600 bg-gray-700 text-white placeholder-gray-400'
-                  : 'border-gray-300 bg-white text-gray-900 placeholder-gray-500'
-              }`}
+              className="glass-input w-full rounded-xl py-3 pl-12 pr-4 text-base font-medium"
             />
           </div>
 
@@ -208,11 +198,7 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value as 'all' | 'active' | 'inactive')}
-              className={`rounded-xl border px-5 py-3 font-medium transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                isDark
-                  ? 'border-gray-600 bg-gray-700 text-white'
-                  : 'border-gray-300 bg-white text-gray-900'
-              }`}
+              className="glass-input rounded-xl px-5 py-3 font-medium"
             >
               <option value="all">All Status</option>
               <option value="active">Active Only</option>
@@ -225,25 +211,25 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
       {/* Nodes List */}
       {loading ? (
         <div
-          className={`rounded-lg border p-8 text-center ${
-            isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
+          className={`glass-panel rounded-2xl border p-8 text-center ${
+            isDark ? 'border-white/10' : 'border-white/20'
           }`}
         >
           <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-500 border-t-transparent"></div>
-          <p className={`font-medium ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          <p className={`font-medium ${isDark ? 'text-ink-300' : 'text-ink-600'}`}>
             Loading network nodes...
           </p>
         </div>
       ) : filteredNodes.length > 0 ? (
         <div
-          className={`overflow-hidden rounded-lg border ${
-            isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
+          className={`glass-panel overflow-hidden rounded-2xl border ${
+            isDark ? 'border-white/10' : 'border-white/20'
           }`}
         >
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead
-                className={isDark ? 'bg-gray-900 text-gray-300' : 'bg-gray-50 text-gray-700'}
+                className={isDark ? 'bg-ink-900/50 text-ink-300' : 'bg-ink-100/50 text-ink-600'}
               >
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold">Node Info</th>
@@ -252,12 +238,12 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
                   <th className="px-6 py-3 text-left text-sm font-semibold">Actions</th>
                 </tr>
               </thead>
-              <tbody className={`divide-y ${isDark ? 'divide-gray-700' : 'divide-gray-200'}`}>
+              <tbody className={`divide-y ${isDark ? 'divide-white/10' : 'divide-white/20'}`}>
                 {filteredNodes.map((node, index) => (
                   <tr
                     key={node.peer_id}
                     className={`transition-colors ${
-                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-50'
+                      isDark ? 'hover:bg-white/5' : 'hover:bg-white/10'
                     }`}
                   >
                     <td className="px-6 py-4">
@@ -278,13 +264,13 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
                         <div>
                           <div
                             className={`font-mono text-sm font-medium break-all ${
-                              isDark ? 'text-white' : 'text-gray-900'
+                              isDark ? 'text-ink-50' : 'text-ink-900'
                             }`}
                           >
                             {node.peer_id}
                           </div>
                           <div
-                            className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-500'}`}
+                            className="text-xs text-ink-400"
                           >
                             Node #{index + 1}
                           </div>
@@ -295,7 +281,7 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
                     <td className="px-6 py-4">
                       <div
                         className={`font-mono text-sm ${
-                          isDark ? 'text-gray-400' : 'text-gray-600'
+                          isDark ? 'text-ink-400' : 'text-ink-500'
                         }`}
                       >
                         {extractIP(node.multiaddr)}
@@ -304,11 +290,7 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
                     <td className="px-6 py-4">
                       <button
                         onClick={() => onNodeClick?.(node.peer_id)}
-                        className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
-                          isDark
-                            ? 'bg-blue-600 text-white hover:bg-blue-700'
-                            : 'bg-blue-500 text-white hover:bg-blue-600'
-                        }`}
+                        className="btn-glass inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium"
                       >
                         <Eye className="h-4 w-4" />
                         View Details
@@ -322,17 +304,17 @@ export default function AllNodes({ onNodeClick }: { onNodeClick?: (peerId: strin
         </div>
       ) : (
         <div
-          className={`rounded-lg border p-8 text-center ${
-            isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'
+          className={`glass-panel rounded-2xl border p-8 text-center ${
+            isDark ? 'border-white/10' : 'border-white/20'
           }`}
         >
           <Database
-            className={`mx-auto mb-4 h-16 w-16 ${isDark ? 'text-gray-600' : 'text-gray-400'}`}
+            className={`mx-auto mb-4 h-16 w-16 ${isDark ? 'text-ink-500' : 'text-ink-400'}`}
           />
-          <h3 className={`mb-2 text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          <h3 className={`mb-2 text-xl font-bold ${isDark ? 'text-ink-50' : 'text-ink-900'}`}>
             No nodes found
           </h3>
-          <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>
+          <p className={isDark ? 'text-ink-400' : 'text-ink-500'}>
             {searchText
               ? 'Try adjusting your search or filter criteria'
               : 'No nodes are currently available'}

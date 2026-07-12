@@ -1,8 +1,9 @@
-import { createClient, Pact, createSignWithEckoWallet } from '@kadena/client';
+import { createClient, Pact, createSignWithEckoWallet, isSignedTransaction } from '@kadena/client';
+import type { ICommand, IUnsignedCommand } from '@kadena/client';
 
 const POLL_INTERVAL_S = 5;
 const network = 'mainnet01';
-const chainId = '1';
+const chainId = '1' as const;
 const networkUrl = `https://api.chainweb-community.org/chainweb/0.0/${network}/chain/${chainId}/pact`;
 const client = createClient(networkUrl);
 
@@ -28,6 +29,20 @@ export interface ClaimableReward {
   reward: number;
 }
 
+function getSuccessData<T>(res: { result: { status: string; data?: unknown; error?: { message?: string } } }): T {
+  if (res.result.status !== 'success') {
+    throw new Error(res.result.error?.message || 'Pact local call failed');
+  }
+  return res.result.data as T;
+}
+
+async function submitSigned(signedTx: IUnsignedCommand | ICommand) {
+  if (!isSignedTransaction(signedTx)) {
+    throw new Error('Transaction was not signed');
+  }
+  return client.submit(signedTx);
+}
+
 // Get single node information
 export const getNode = async (peerId: string): Promise<NodeInfo> => {
   const unsignedTransaction = Pact.builder
@@ -43,7 +58,7 @@ export const getNode = async (peerId: string): Promise<NodeInfo> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<NodeInfo>(res);
 };
 
 // Get nodes owned by an account
@@ -62,7 +77,7 @@ export const getMyNodes = async (account: string): Promise<NodeInfo[]> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<NodeInfo[]>(res);
 };
 
 // Get all active nodes
@@ -81,7 +96,7 @@ export const getActiveNodes = async (): Promise<NodeInfo[]> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<NodeInfo[]>(res);
 };
 
 // Get APY
@@ -100,7 +115,7 @@ export const getAPY = async (): Promise<number> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<number>(res);
 };
 
 // Get stake statistics
@@ -119,7 +134,7 @@ export const getStakeStats = async (): Promise<any> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData(res);
 };
 
 // Get node stake information
@@ -138,7 +153,7 @@ export const getNodeStake = async (peerId: string): Promise<NodeStakeInfo> => {
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<NodeStakeInfo>(res);
 };
 
 // Get claimable rewards for a node
@@ -157,7 +172,7 @@ export const getNodeClaimable = async (peerId: string): Promise<ClaimableReward>
     signatureVerification: false,
     preflight: false,
   });
-  return res.result.data;
+  return getSuccessData<ClaimableReward>(res);
 };
 
 // Stake on a node
@@ -189,7 +204,7 @@ export const nodeStake = async (account: string, peerId: string): Promise<any> =
   const res = await client.local(signedTx);
 
   if (res.result.status === 'success') {
-    const txn = await client.submit(signedTx);
+    const txn = await submitSigned(signedTx);
     console.log('Stake transaction:', txn);
     // TODO: Poll for transaction completion
     return txn;
@@ -225,7 +240,7 @@ export const nodeUnStake = async (account: string, peerId: string): Promise<any>
   const res = await client.local(signedTx);
 
   if (res.result.status === 'success') {
-    const txn = await client.submit(signedTx);
+    const txn = await submitSigned(signedTx);
     console.log('Unstake transaction:', txn);
     return txn;
   } else {
@@ -260,7 +275,7 @@ export const claimReward = async (account: string, peerId: string): Promise<any>
   const res = await client.local(signedTx);
 
   if (res.result.status === 'success') {
-    const txn = await client.submit(signedTx);
+    const txn = await submitSigned(signedTx);
     console.log('Claim transaction:', txn);
     return txn;
   } else {
@@ -283,7 +298,7 @@ export const pollForTransaction = async (
     timeSpentPollingS += POLL_INTERVAL_S;
 
     try {
-      pollRes = await client.pollStatus({ requestKey }, {});
+      pollRes = await client.pollStatus({ requestKey, chainId, networkId: network }, {});
       if (pollRes[requestKey]) {
         console.log(`${message} - Transaction completed:`, pollRes[requestKey]);
         callback?.();

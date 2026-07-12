@@ -325,17 +325,13 @@ export class VideoFileViewer {
   
   // MediaSource for playback
   private mediaSource: MediaSource | null = null;
-  private sourceBuffer: SourceBuffer | null = null;
   private videoElement: HTMLVideoElement | null = null;
-  private appendQueue: { index: number; data: Uint8Array }[] = [];
-  private isAppending = false;
   private lastAppendedIndex = -1;
   
   // Callbacks
   private onMetadata?: (metadata: VideoMetadata) => void;
   private onProgress?: (received: number, total: number) => void;
   private onReady?: () => void;
-  private onError?: (error: string) => void;
   
   // Peer chunk availability (for peer-assisted delivery)
   private peerChunks: Map<string, Set<number>> = new Map();
@@ -364,7 +360,6 @@ export class VideoFileViewer {
     this.onMetadata = callbacks.onMetadata;
     this.onProgress = callbacks.onProgress;
     this.onReady = callbacks.onReady;
-    this.onError = callbacks.onError;
   }
 
   /**
@@ -554,8 +549,11 @@ export class VideoFileViewer {
     
     if (orderedChunks.length === 0) return;
     
-    // Create blob and play
-    const blob = new Blob(orderedChunks, { type: this.metadata.mimeType });
+    // Create blob and play (slice() yields Uint8Array backed by ArrayBuffer for BlobPart)
+    const blob = new Blob(
+      orderedChunks.map((chunk) => chunk.slice()),
+      { type: this.metadata.mimeType }
+    );
     const url = URL.createObjectURL(blob);
     
     // Remember current playback position
@@ -582,13 +580,6 @@ export class VideoFileViewer {
         console.log('[VideoFile] Auto-play blocked:', e.message);
       });
     }
-  }
-
-  /**
-   * Queue chunk for playback - triggers progressive play check
-   */
-  private queueChunkForPlayback(_index: number, _data: Uint8Array): void {
-    // Progressive play is handled in handleChunk
   }
 
   /**
@@ -631,25 +622,6 @@ export class VideoFileViewer {
     
     // Start requesting after a short delay
     setTimeout(requestBatch, 100);
-  }
-
-  /**
-   * Request missing chunks from peers
-   */
-  private async requestMissingChunks(): Promise<void> {
-    if (!this.metadata) return;
-    
-    // Find missing chunks
-    for (let i = this.lastAppendedIndex + 1; i < this.metadata.totalChunks; i++) {
-      if (!this.receivedChunks.has(i) && !this.pendingRequests.has(i)) {
-        // Request from peers who have it
-        await this.requestChunkFromPeers(i);
-        this.pendingRequests.add(i);
-        
-        // Limit concurrent requests
-        if (this.pendingRequests.size >= 5) break;
-      }
-    }
   }
 
   /**
@@ -759,7 +731,6 @@ export class VideoFileViewer {
     this.receivedChunks.clear();
     this.pendingRequests.clear();
     this.peerChunks.clear();
-    this.appendQueue = [];
   }
 }
 
